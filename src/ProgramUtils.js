@@ -24,6 +24,15 @@ function insert(program: Program, index: number, command: string, fill: string):
     return program;
 };
 
+function shift(program: Program, index: number, commands: array<string>, fill: string): Program {
+    const shiftBy = index + commands.length;
+    program = program.slice();
+    for (let i=index; i<shiftBy; i++) {
+        program.splice(i, 0, commands[i-index]);
+    }
+    return program;
+};
+
 function overwrite(program: Program, index: number, command: string, fill: string): Program {
     program = expandProgram(program, index + 1, fill);
     program[index] = command;
@@ -44,6 +53,7 @@ export {
     deleteStep,
     expandProgram,
     insert,
+    shift,
     overwrite,
     trimEnd
 };
