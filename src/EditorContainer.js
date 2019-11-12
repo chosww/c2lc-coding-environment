@@ -5,14 +5,16 @@ import ProgramTextEditor from './ProgramTextEditor';
 import React from 'react';
 import TextSyntax from './TextSyntax';
 import { Container } from 'react-bootstrap';
-import type {EditorMode, Program} from './types';
+import type {EditorMode, Program, SelectedCommand} from './types';
 
 type EditorContainerProps = {
     program: Program,
     programVer: number,
     syntax: TextSyntax,
     mode: EditorMode,
-    selectedCommand: string,
+    selectedCommand: SelectedCommand,
+    savedProgramList: any,
+    onFunction: (func: ?string) => void,
     onChange: (Program) => void
 };
 
@@ -36,6 +38,8 @@ export default class EditorContainer extends React.Component<EditorContainerProp
                     <ProgramBlockEditor
                         program={this.props.program}
                         selectedCommand={this.props.selectedCommand}
+                        savedProgramList={this.props.savedProgramList}
+                        onFunction={this.props.onFunction}
                         onChange={this.props.onChange} />
                 )}
             </Container>
