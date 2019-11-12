@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { injectIntl, IntlProvider, FormattedMessage } from 'react-intl';
-import { Col, Container, Dropdown, Form, Image, Row } from 'react-bootstrap';
+import { Alert, Button, Col, Container, Dropdown, Form, Image, Row } from 'react-bootstrap';
 import CommandPalette from './CommandPalette';
 import CommandPaletteCategory from './CommandPaletteCategory';
 import CommandPaletteCommand from './CommandPaletteCommand';
@@ -16,12 +16,14 @@ import SoundexTable from './SoundexTable';
 import TextSyntax from './TextSyntax';
 import TurtleGraphics from './TurtleGraphics';
 import WebSpeechInput from './WebSpeechInput';
-import type {DeviceConnectionStatus, Program, EditorMode} from './types';
+import type {DeviceConnectionStatus, EditorMode, Program, SelectedCommand } from './types';
 import messages from './messages.json';
 import arrowLeft from 'material-design-icons/navigation/svg/production/ic_arrow_back_48px.svg';
 import arrowRight from 'material-design-icons/navigation/svg/production/ic_arrow_forward_48px.svg';
 import arrowUp from 'material-design-icons/navigation/svg/production/ic_arrow_upward_48px.svg';
 import playIcon from 'material-design-icons/av/svg/production/ic_play_arrow_48px.svg';
+import programIcon from 'material-design-icons/editor/svg/production/ic_format_list_numbered_48px.svg';
+import saveIcon from 'material-design-icons/content/svg/production/ic_save_24px.svg';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import './App.css';
 
@@ -44,7 +46,8 @@ type AppState = {
     settings: AppSettings,
     dashConnectionStatus: DeviceConnectionStatus,
     speechRecognitionOn: boolean,
-    selectedCommandName: string
+    selectedCommandName: SelectedCommand,
+    savedProgram: any
 };
 
 export default class App extends React.Component<{}, AppState> {
@@ -82,7 +85,9 @@ export default class App extends React.Component<{}, AppState> {
             },
             dashConnectionStatus: 'notConnected',
             speechRecognitionOn: false,
-            selectedCommandName: 'none'
+            selectedCommandName: null,
+            savedProgram : {},
+            showSaveProgramWindow : false
         };
 
         this.interpreter = new Interpreter();
@@ -225,11 +230,44 @@ export default class App extends React.Component<{}, AppState> {
         });
     };
 
-    handleCommandFromCommandPalette = (command: string) => {
-        this.setState({
-            selectedCommandName: command
+    handleCommandFromCommandPalette = (command: ?string, type: string) => {
+        if (type === 'movements') {
+            // keep this only if doesn't like the save model
+            this.setState(
+                command ? { selectedCommandName: { command }} :
+                { selectedCommandName: null }
+            );
+        } else if (type === 'programs'){
+            this.setState(
+                command ? { selectedCommandName: { program: command }} :
+                { selectedCommandName: null }
+            );
+        }
+    };
+
+    handleFunctionFromEditor = (func: ?string) => {
+        this.setState(
+            func ? { selectedCommandName: { func }} :
+            { selectedCommandName: null }
+        );
+    };
+
+    handleSaveProgram = (programName: string) => {
+        this.setState((state) => {
+            return {
+                savedProgram: Object.assign({}, state.savedProgram, { [programName] : this.state.program }),
+                showSaveProgramWindow: false
+            };
         });
     };
+
+    handleShowSaveProgramWindow = () => {
+        this.setState((state) => {
+            return {
+                showSaveProgramWindow: !this.state.showSaveProgramWindow
+            }
+        })
+    }
 
     render() {
         return (
@@ -255,12 +293,40 @@ export default class App extends React.Component<{}, AppState> {
                                 </Dropdown>
                             </Row>
                             <Row>
+                                {/* this part should be its own component */}
+                                {this.state.showSaveProgramWindow ? (
+                                    <Alert show={this.state.showSaveProgramWindow} variant='light'>
+                                        <Alert.Heading>Do you want to save current program?</Alert.Heading>
+                                        <Form>
+                                            <Form.Group controlId='saveProgram'>
+                                                <Form.Label>What's the name of the program?</Form.Label>
+                                                <Form.Control as='textarea' rows='1' />
+                                            </Form.Group>
+                                            <Row>
+                                                <Button onClick={()=> (
+                                                    this.handleSaveProgram(document.getElementById('saveProgram').value)
+                                                )} variant='light'>
+                                                    Save
+                                                </Button>
+                                                <Button onClick={this.handleShowSaveProgramWindow} variant='light'>
+                                                    Cancel
+                                                </Button>
+                                            </Row>
+                                        </Form>
+                                    </Alert>
+                                ): (
+                                    <Button variant='light' onClick={this.handleShowSaveProgramWindow}>
+                                        <Image src={saveIcon} />
+                                    </Button>
+                                )}
                                 <EditorContainer
                                     program={this.state.program}
                                     programVer={this.state.programVer}
                                     syntax={this.syntax}
                                     mode={this.state.settings.editorMode}
                                     selectedCommand={this.state.selectedCommandName}
+                                    savedProgramList={this.state.savedProgram}
+                                    onFunction={this.handleFunctionFromEditor}
                                     onChange={this.handleChangeProgram}
                                     />
                             </Row>
@@ -292,11 +358,19 @@ export default class App extends React.Component<{}, AppState> {
                             {localizeProperties((intl) =>
                                 <CommandPalette id='commandPalette' defaultActiveKey='movements' >
                                     <CommandPaletteCategory eventKey='movements' title={(intl.formatMessage({ id: 'CommandPalette.movementsTitle' }))}>
-                                        <CommandPaletteCommand commandName='forward' icon={arrowUp} selectedCommandName={this.state.selectedCommandName} onChange={this.handleCommandFromCommandPalette}/>
-                                        <CommandPaletteCommand commandName='left' icon={arrowLeft} selectedCommandName={this.state.selectedCommandName} onChange={this.handleCommandFromCommandPalette}/>
-                                        <CommandPaletteCommand commandName='right' icon={arrowRight} selectedCommandName={this.state.selectedCommandName} onChange={this.handleCommandFromCommandPalette}/>
+                                        <CommandPaletteCommand type='movements' commandName='forward' icon={arrowUp} selectedCommandName={this.state.selectedCommandName} onChange={this.handleCommandFromCommandPalette}/>
+                                        <CommandPaletteCommand type='movements' commandName='left' icon={arrowLeft} selectedCommandName={this.state.selectedCommandName} onChange={this.handleCommandFromCommandPalette}/>
+                                        <CommandPaletteCommand type='movements' commandName='right' icon={arrowRight} selectedCommandName={this.state.selectedCommandName} onChange={this.handleCommandFromCommandPalette}/>
                                     </CommandPaletteCategory>
                                     <CommandPaletteCategory eventKey='sounds' title={(intl.formatMessage({ id: 'CommandPalette.soundsTitle' }))}>
+                                    </CommandPaletteCategory>
+                                    <CommandPaletteCategory eventKey='programs' title='Programs'>
+                                        {
+                                            Object.keys(this.state.savedProgram).map((item, programNumber)=> {
+                                                console.log(item);
+                                                return <CommandPaletteCommand key={item} type='programs' commandName={item} icon={programIcon} selectedCommandName={this.state.selectedCommandName} onChange={this.handleCommandFromCommandPalette} />
+                                            })
+                                        }
                                     </CommandPaletteCategory>
                                 </CommandPalette>
                             )}
@@ -337,6 +411,7 @@ export default class App extends React.Component<{}, AppState> {
     }
 
     componentDidUpdate(prevProps: {}, prevState: AppState) {
+        console.log(this.state.savedProgram);
         // Dash Connection Status
         if (this.state.dashConnectionStatus !== prevState.dashConnectionStatus) {
             console.log(this.state.dashConnectionStatus);
