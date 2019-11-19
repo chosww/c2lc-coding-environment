@@ -43,3 +43,20 @@ jobs:
         run: npx flow
       - name: Test
         run: npm test
+  deploy:
+    name: Deploy
+    needs: build
+    runs-on: ubuntu-18.04
+    steps:
+      - uses: actions/checkout@v1
+        with:
+          fetch-depth: 1
+      - uses: actions/download-artifact@v1
+        with:
+          name: build
+      - uses: w9jds/fire-base-action@v1.1.0
+        with:
+          args: deploy --only hosting:prod
+        env:
+          FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
+          PROJECT_ID: ${{ secrets.C2LC_19 }}
