@@ -54,7 +54,7 @@ jobs:
       - uses: actions/download-artifact@v1
         with:
           name: build
-      - uses: w9jds/fire-base-action@v1.1.0
+      - uses: w9jds/fire-base-action@v1
         with:
           args: deploy --only hosting:prod
         env:
