@@ -31,7 +31,7 @@ jobs:
       - name: CheckUser
         env:
           USER_REPO: ${{ toJson(github.repository) }}
-        if: contains($USER_REPO, "chosww")
+        if: ${{contains($USER_REPO, "chosww")}}
         run: echo "$USER_REPO"
 #       - name: NPM audit
 #         run: npm audit
