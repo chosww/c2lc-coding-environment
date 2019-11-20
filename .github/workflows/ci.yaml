@@ -56,6 +56,6 @@ jobs:
           name: build
       - uses: w9jds/firebase-action@v1.1.0
         with:
-          args: deploy --only hosting:prod
+          args: deploy --project=c2lc-demo
         env:
           FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
