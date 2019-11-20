@@ -29,7 +29,7 @@ jobs:
           echo NPM:
           npm --version
           echo User:
-          ${{contains(github.repository, 'somethingelse')}}
+          if: contains(github.repository, 'somethingelse')
 #       - name: NPM audit
 #         run: npm audit
 #       - name: NPM install (ci)
