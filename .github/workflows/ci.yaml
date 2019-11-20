@@ -31,8 +31,9 @@ jobs:
       - name: CheckUser
         env:
           USER_REPO: ${{ toJson(github.repository) }}
+          USER_BRANCH: ${{ toJson(github.ref) }}
         if: success() && contains(github.repository, 'chosww')
-        run: echo "$USER_REPO"
+        run: echo "$USER_REPO at branch $USER_BRANCH"
 #       - name: NPM audit
 #         run: npm audit
 #       - name: NPM install (ci)
