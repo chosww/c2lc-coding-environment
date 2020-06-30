@@ -20,7 +20,7 @@ import messages from './messages.json';
 import './App.scss';
 
 // Uncomment to use the FakeRobotDriver (see driver construction below also)
-//import FakeRobotDriver from './FakeRobotDriver';
+import FakeRobotDriver from './FakeRobotDriver';
 
 type AppContext = {
     bluetoothApiIsAvailable: boolean
@@ -38,7 +38,8 @@ type AppState = {
     interpreterIsRunning: boolean,
     showDashConnectionError: boolean,
     selectedAction: ?string,
-    isDraggingCommand: boolean
+    isDraggingCommand: boolean,
+    focusIsInActionPanelGroup: boolean
 };
 
 export default class App extends React.Component<{}, AppState> {
@@ -65,7 +66,8 @@ export default class App extends React.Component<{}, AppState> {
             interpreterIsRunning: false,
             showDashConnectionError: false,
             selectedAction: null,
-            isDraggingCommand: false
+            isDraggingCommand: false,
+            focusIsInActionPanelGroup: false
         };
 
         this.interpreter = new Interpreter(this.handleRunningStateChange);
@@ -79,7 +81,7 @@ export default class App extends React.Component<{}, AppState> {
         );
 
         // For FakeRobotDriver, replace with: this.dashDriver = new FakeRobotDriver();
-        this.dashDriver = new DashDriver();
+        this.dashDriver = new FakeRobotDriver();
 
         this.toCommandPaletteNoticeId = Utils.generateId('toCommandPaletteNotice');
 
@@ -184,21 +186,86 @@ export default class App extends React.Component<{}, AppState> {
         this.focusTrapManager.handleKeyDown(e);
     };
 
+    // TODO: create a class to handle group focus and group blur to hide low level implementation from the App
+    // in the App constructor:
+    // this.actionPanelFocusGroupManager = new FocusGroupManager(
+    //     'actionpanelgroup',
+    //     this.handleChangeActionPanelFocus
+    // );
+    // handleChangeActionPanelFocus = (isFocus) => {
+    //     this.setState({
+    //         focusIsInActionPanelGroup: isFocus
+    //     });
+    // };
+    // at the onFocus and onBlur handler registration:
+    // onFocus={this.actionPanelFocusGroupManager.onFocus}
+    // onBlur={this.actionPanelFocusGroupManager.onBlur}
+
+    handleActionPanelGroupFocus = (e) => {
+        if (e.target.dataset.actionpanelgroup) {
+            this.setState({
+                focusIsInActionPanelGroup: true
+            });
+            console.log('focus: focusIsInActionPanelGroup: true');
+        } else {
+            this.setState({
+                focusIsInActionPanelGroup: false
+            });
+            console.log('focus: focusIsInActionPanelGroup: false');
+        }
+    };
+
+    handleActionPanelGroupBlur = (e) => {
+        if (e.relatedTarget) {
+            if (e.relatedTarget.dataset.actionpanelgroup) {
+                this.setState({
+                    focusIsInActionPanelGroup: true
+                });
+                console.log('blur: focusIsInActionPanelGroup: true');
+            } else {
+                this.setState({
+                    focusIsInActionPanelGroup: false
+                });
+                console.log('blur: focusIsInActionPanelGroup: false');
+            }
+        } else {
+            this.setState({
+                focusIsInActionPanelGroup: false
+            });
+            console.log("blur: relatedTarget is null");
+        }
+
+        /*
+        if (e.relatedTarget.dataset.actionpanelgroup) {
+            console.log('entering action panel group');
+        } else {
+            console.log('focusing something else');
+        }
+        */
+        //console.log(`Control Panel's related target is ${e.relatedTarget.dataset.actionpanelgroup}`);
+    };
+
+    // onBlur or onFocus to check if control panel is open, and has focus left the control panel or the actions panel
+    // if element of child what we are interested in
+
     render() {
         return (
             <IntlProvider
                     locale={this.state.settings.language}
                     messages={messages[this.state.settings.language]}>
                 <header className='App__header'>
-                    <Container>
+                    <Container
+                        onFocus={this.handleActionPanelGroupFocus}
+                        onBlur={this.handleActionPanelGroupBlur} >
                         <Row className='App__header-row'>
                             <h1 className='App__app-heading'>
                                 <FormattedMessage id='App.appHeading'/>
                             </h1>
                             <DeviceConnectControl
-                                disabled={
-                                    !this.appContext.bluetoothApiIsAvailable ||
-                                    this.state.dashConnectionStatus === 'connected' }
+                                disabled={false}
+                                // disabled={
+                                //     !this.appContext.bluetoothApiIsAvailable ||
+                                //     this.state.dashConnectionStatus === 'connected' }
                                 connectionStatus={this.state.dashConnectionStatus}
                                 onClickConnect={this.handleClickConnectDash}>
                                 <FormattedMessage id='App.connectToDash' />
@@ -206,7 +273,11 @@ export default class App extends React.Component<{}, AppState> {
                         </Row>
                     </Container>
                 </header>
-                <Container role='main' className='mb-5' onKeyDown={this.handleRootKeyDown}>
+                <Container
+                    role='main' className='mb-5'
+                    onKeyDown={this.handleRootKeyDown}
+                    onFocus={this.handleActionPanelGroupFocus}
+                    onBlur={this.handleActionPanelGroupBlur} >
                     {!this.appContext.bluetoothApiIsAvailable &&
                         <Row className='App__bluetooth-api-warning-section'>
                             <Col>
@@ -216,7 +287,11 @@ export default class App extends React.Component<{}, AppState> {
                     }
                     <Row className='App__program-section' noGutters={true}>
                         <Col md={4} lg={3} className='pr-md-3 mb-3 mb-md-0'>
-                            <div className='App__command-palette'>
+                            <div
+                                className='App__command-palette'
+                                //onFocus={this.handleActionPanelGroupFocus}
+                                //onBlur={this.handleActionPanelGroupBlur} >
+                                >
                                 <h2 className='App__command-palette-heading'>
                                     <FormattedMessage id='CommandPalette.movementsTitle' />
                                 </h2>
@@ -247,21 +322,27 @@ export default class App extends React.Component<{}, AppState> {
                             </div>
                         </Col>
                         <Col md={8} lg={9}>
-                            <ProgramBlockEditor
-                                activeProgramStepNum={this.state.activeProgramStepNum}
-                                editingDisabled={this.state.interpreterIsRunning === true}
-                                interpreterIsRunning={this.state.interpreterIsRunning}
-                                program={this.state.program}
-                                selectedAction={this.state.selectedAction}
-                                isDraggingCommand={this.state.isDraggingCommand}
-                                runButtonDisabled={
-                                    this.state.dashConnectionStatus !== 'connected' ||
-                                    this.state.interpreterIsRunning ||
-                                    programIsEmpty(this.state.program)}
-                                focusTrapManager={this.focusTrapManager}
-                                onClickRunButton={this.handleClickRun}
-                                onChange={this.handleChangeProgram}
-                            />
+                            <div
+                                //onFocus={this.handleActionPanelGroupFocus}
+                                //onBlur={this.handleActionPanelGroupBlur} >
+                                >
+                                <ProgramBlockEditor
+                                    activeProgramStepNum={this.state.activeProgramStepNum}
+                                    editingDisabled={this.state.interpreterIsRunning === true}
+                                    interpreterIsRunning={this.state.interpreterIsRunning}
+                                    program={this.state.program}
+                                    selectedAction={this.state.selectedAction}
+                                    isDraggingCommand={this.state.isDraggingCommand}
+                                    runButtonDisabled={
+                                        this.state.dashConnectionStatus !== 'connected' ||
+                                        this.state.interpreterIsRunning ||
+                                        programIsEmpty(this.state.program)}
+                                    focusTrapManager={this.focusTrapManager}
+                                    focusIsInActionPanelGroup={this.state.focusIsInActionPanelGroup}
+                                    onClickRunButton={this.handleClickRun}
+                                    onChange={this.handleChangeProgram}
+                                />
+                            </div>
                         </Col>
                     </Row>
                 </Container>

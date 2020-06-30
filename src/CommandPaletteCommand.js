@@ -39,6 +39,7 @@ class CommandPaletteCommand extends React.Component<CommandPaletteCommandProps, 
             <CommandBlock
                 draggable='true'
                 id={`command-block--${this.props.commandName}`}
+                data-actionpanelgroup={true}
                 onDragStart={this.handleDragStart}
                 onDragEnd={this.handleDragEnd}
                 commandName={this.props.commandName}

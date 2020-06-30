@@ -44,6 +44,10 @@ button.btn.ActionPanel__action-buttons {
     padding: 0.3rem;
 }
 
+button.btn.ActionPanel__action-buttons--disabled {
+    opacity: 30%;
+}
+
 .ActionPanel__action-button-svg {
     position: relative;
     margin: auto;

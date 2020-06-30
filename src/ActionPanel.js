@@ -1,7 +1,7 @@
 // @flow
 
 import React from 'react';
-import { Button } from 'react-bootstrap';
+import AriaDisablingButton from './AriaDisablingButton';
 import { injectIntl } from 'react-intl';
 import type { Program } from './types';
 import { ReactComponent as MovePreviousIcon } from './svg/MovePrevious.svg';
@@ -85,36 +85,48 @@ class ActionPanel extends React.Component<ActionPanelProps, {}> {
             <div
                 id='ActionPanel'
                 className={'ActionPanel__panel'}
+                data-actionpanelgroup={true}
                 style={positionStyles}
-                ref={this.actionPanelRef}>
-                <Button
+                ref={this.actionPanelRef}
+                onBlur={this.props.onBlur}>
+                <AriaDisablingButton
+                    data-actionpanelgroup={true}
                     name='deleteCurrentStep'
+                    disabled={false}
                     aria-label={this.props.intl.formatMessage({id:'ActionPanel.action.delete'}, stepInfoMessage)}
                     className='ActionPanel__action-buttons'
                     onClick={this.props.onDelete}>
                     <DeleteIcon className='ActionPanel__action-button-svg' />
-                </Button>
-                <Button
+                </AriaDisablingButton>
+                <AriaDisablingButton
+                    data-actionpanelgroup={true}
                     name='replaceCurrentStep'
+                    disabled={false}
                     aria-label={this.props.intl.formatMessage({id:'ActionPanel.action.replace'}, stepInfoMessage)}
                     className='ActionPanel__action-buttons replace-action-button'
                     onClick={this.props.onReplace}>
                     <ReplaceIcon className='ActionPanel__action-button-svg' />
-                </Button>
-                <Button
+                </AriaDisablingButton>
+                <AriaDisablingButton
+                    data-actionpanelgroup={true}
                     name='moveToPreviousStep'
+                    disabled={this.props.pressedStepIndex === 0}
+                    disabledClassName='ActionPanel__action-buttons--disabled'
                     aria-label={this.props.intl.formatMessage({id:'ActionPanel.action.moveToPreviousStep'}, stepInfoMessage)}
                     className='ActionPanel__action-buttons'
                     onClick={this.props.onMoveToPreviousStep}>
                     <MovePreviousIcon className='ActionPanel__action-button-svg' />
-                </Button>
-                <Button
+                </AriaDisablingButton>
+                <AriaDisablingButton
+                    data-actionpanelgroup={true}
                     name='moveToNextStep'
+                    disabled={this.props.pressedStepIndex === this.props.program.length-1}
+                    disabledClassName='ActionPanel__action-buttons--disabled'
                     aria-label={this.props.intl.formatMessage({id:'ActionPanel.action.moveToNextStep'}, stepInfoMessage)}
                     className='ActionPanel__action-buttons'
                     onClick={this.props.onMoveToNextStep}>
                     <MoveNextIcon className='ActionPanel__action-button-svg' />
-                </Button>
+                </AriaDisablingButton>
             </div>
         )
     }
@@ -128,8 +140,6 @@ class ActionPanel extends React.Component<ActionPanelProps, {}> {
                 if(optionButtonRef) {
                     optionButtonRef.focus();
                 }
-            } else {
-                element.focus();
             }
         }
     }

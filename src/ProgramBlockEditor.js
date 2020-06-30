@@ -28,6 +28,7 @@ type ProgramBlockEditorProps = {
     isDraggingCommand: boolean,
     runButtonDisabled: boolean,
     focusTrapManager: FocusTrapManager,
+    focusIsInActionPanelGroup: boolean,
     onClickRunButton: () => void,
     onChange: (Program) => void
 };
@@ -50,6 +51,7 @@ class ProgramBlockEditor extends React.Component<ProgramBlockEditorProps, Progra
     addNodeRefs: Map<number, HTMLElement>;
     focusCommandBlockIndex: ?number;
     scrollToAddNodeIndex: ?number;
+    actionPanelRef: { current: null | HTMLDivElement };
 
     constructor(props: ProgramBlockEditorProps) {
         super(props);
@@ -57,6 +59,7 @@ class ProgramBlockEditor extends React.Component<ProgramBlockEditorProps, Progra
         this.addNodeRefs = new Map();
         this.focusCommandBlockIndex = null;
         this.scrollToAddNodeIndex = null;
+        this.actionPanelRef = React.createRef();
         this.state = {
             showConfirmDeleteAll : false,
             showActionPanel: false,
@@ -106,6 +109,12 @@ class ProgramBlockEditor extends React.Component<ProgramBlockEditorProps, Progra
         }
     };
 
+    hasClassName = (className: string) => {
+        if (document.activeElement.getAttribute('class') != null) {
+            return document.activeElement.getAttribute('class').includes(className);
+        }
+    }
+
     // Handlers
 
     handleChangeAddNodeExpandedMode = (isAddNodeExpandedMode: boolean) => {
@@ -115,6 +124,7 @@ class ProgramBlockEditor extends React.Component<ProgramBlockEditorProps, Progra
     };
 
     handleClickDelete = () => {
+        // whenever the delete is clicked, it provide index to delete as a parameter to this handler
         this.focusCommandBlockIndex = this.state.pressedStepIndex;
         if (this.state.pressedStepIndex != null) {
             this.props.onChange(ProgramUtils.deleteStep(this.props.program, this.state.pressedStepIndex));
@@ -202,6 +212,12 @@ class ProgramBlockEditor extends React.Component<ProgramBlockEditorProps, Progra
         }
     };
 
+    // TODO: Remove showActionPanel, rather use pressedStepIndex as the record
+    //       of if the action panel is being shown
+    // TODO: Ideally all this function should be doing is setting pressedStepIndex
+    // TODO: Toggle pressedStepIndex
+    //       if null, set to the stepnumber from the event
+    //       otherwise, set to null
     handleActionPanelDisplay = (index: number) => {
         const currentStepButton = this.commandBlockRefs.get(index);
 
@@ -238,9 +254,12 @@ class ProgramBlockEditor extends React.Component<ProgramBlockEditorProps, Progra
         }
     };
 
+    // TODO: Once handleActionPanelDisplay is simplified, move into this function
     handleClickStep = (e: SyntheticEvent<HTMLButtonElement>) => {
         const index = parseInt(e.currentTarget.dataset.stepnumber, 10);
         this.handleActionPanelDisplay(index);
+        // TODO: This code appears to do nothing: this.props.program[index] should never be null
+        // TODO: Clicking a program step should only toggle the display of the action panel
         if (this.props.selectedAction && this.props.program[index] == null ){
             this.focusCommandBlockIndex = index;
             this.props.onChange(ProgramUtils.overwrite(this.props.program,
@@ -269,6 +288,31 @@ class ProgramBlockEditor extends React.Component<ProgramBlockEditorProps, Progra
         this.insertSelectedCommandIntoProgram(stepNumber);
     };
 
+    // stop propagation to stop event bubble
+
+    handleOnBlur = (e) => {
+        // console.log(`Control Panel's related target is ${e.relatedTarget.dataset.actionpanelgroup}`);
+        // if (
+        //     this.actionPanelRef.current &&
+        //     e.relatedTarget &&
+        //     this.actionPanelRef.current.contains(e.relatedTarget)) {
+        //     console.log('within action panel');
+        // } else {
+        //     console.log('leaving action Panel');
+        // }
+        // console.log(document.activeElement);
+        // const activeElementClass = document.activeElement.getAttribute('class');
+        // if (activeElementClass != null) {
+        //     if (activeElementClass.includes('ActionPanel') || activeElementClass.includes('command-block')) {
+        //         console.log('it is components of interest');
+        //     } else {
+        //         this.setState({
+        //             pressedStepIndex: null
+        //         });
+        //     }
+        // }
+    }
+
     // Rendering
 
     makeProgramBlock(programStepNumber: number, command: string) {
@@ -291,6 +335,7 @@ class ProgramBlockEditor extends React.Component<ProgramBlockEditorProps, Progra
                 key={`${programStepNumber}-${command}`}
                 data-stepnumber={programStepNumber}
                 data-command={command}
+                data-actionpanelgroup={true}
                 className={classes}
                 aria-label={ariaLabel}
                 aria-controls={hasActionPanelControl ? 'ActionPanel' : undefined}
@@ -351,13 +396,16 @@ class ProgramBlockEditor extends React.Component<ProgramBlockEditorProps, Progra
                 <div className='ProgramBlockEditor__program-block-with-panel'>
                     {this.makeProgramBlock(programStepNumber, command)}
                     {this.state.pressedStepIndex === programStepNumber &&
-                        <div className='ProgramBlockEditor__action-panel-container'>
+                        <div
+                            ref={this.actionPanelRef}
+                            className='ProgramBlockEditor__action-panel-container'>
                             <ActionPanel
                                 focusedOptionName={this.state.focusedActionPanelOptionName}
                                 selectedCommandName={this.props.selectedAction}
                                 program={this.props.program}
                                 pressedStepIndex={programStepNumber}
                                 position={this.state.actionPanelPosition}
+                                onBlur={this.handleOnBlur}
                                 onDelete={this.handleClickDelete}
                                 onReplace={this.handleReplaceStep}
                                 onMoveToPreviousStep={this.handleMoveToPreviousStep}
@@ -452,7 +500,21 @@ class ProgramBlockEditor extends React.Component<ProgramBlockEditorProps, Progra
         );
     }
 
-    componentDidUpdate() {
+    componentDidUpdate(prevProps: ProgramBlockEditorProps, prevState: {}) {
+        console.log(`current: ${this.props.focusIsInActionPanelGroup} previous: ${prevProps.focusIsInActionPanelGroup}`);
+        if ((this.props.focusIsInActionPanelGroup !== prevProps.focusIsInActionPanelGroup)
+                && !this.props.focusIsInActionPanelGroup) {
+                    console.log('closing the action panel');
+            this.setState({
+                pressedStepIndex: null
+            });
+        }
+        if ((this.props.isDraggingCommand !== prevProps.isDraggingCommand)
+                && this.props.isDraggingCommand) {
+            this.setState({
+                pressedStepIndex: null
+            });
+        }
         if (this.scrollToAddNodeIndex != null) {
             let element = this.addNodeRefs.get(this.scrollToAddNodeIndex);
             if (element && element.scrollIntoView) {
@@ -477,6 +539,7 @@ class ProgramBlockEditor extends React.Component<ProgramBlockEditorProps, Progra
             if (this.state.replaceIsActive) {
                 this.props.focusTrapManager.setFocusTrap(
                     this.handleCloseReplaceFocusTrap,
+                    // TODO: get selector from command palette
                     ['.replace-action-button', '.App__command-palette-command button'],
                     '.replace-action-button'
                 );
