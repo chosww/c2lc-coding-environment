@@ -15,6 +15,7 @@ import classNames from 'classnames';
 import ToggleSwitch from './ToggleSwitch';
 import { ReactComponent as AddIcon } from './svg/Add.svg';
 import { ReactComponent as PlayIcon } from './svg/Play.svg';
+import { ReactComponent as PauseIcon } from './svg/Pause.svg';
 import { ReactComponent as DeleteAllIcon } from './svg/DeleteAll.svg';
 import './ProgramBlockEditor.scss';
 
@@ -26,12 +27,14 @@ type ProgramBlockEditorProps = {
     actionPanelStepIndex: ?number,
     editingDisabled: boolean,
     interpreterIsRunning: boolean,
+    pausedProgramStepNum: ?number,
     program: Program,
     selectedAction: ?string,
     isDraggingCommand: boolean,
     runButtonDisabled: boolean,
     audioManager: AudioManager,
     focusTrapManager: FocusTrapManager,
+    setPausedProgramStepNum: (index: number) => void,
     onClickRunButton: () => void,
     onChangeProgram: (Program) => void,
     onChangeActionPanelStepIndex: (index: ?number) => void
@@ -70,6 +73,9 @@ class ProgramBlockEditor extends React.Component<ProgramBlockEditorProps, Progra
 
     insertSelectedCommandIntoProgram(index: number) {
         if (this.props.selectedAction) {
+            if (this.props.pausedProgramStepNum != null && index <= this.props.pausedProgramStepNum) {
+                this.props.setPausedProgramStepNum(this.props.pausedProgramStepNum + 1);
+            }
             this.focusCommandBlockIndex = index;
             this.scrollToAddNodeIndex = index + 1;
             this.props.onChangeProgram(ProgramUtils.insert(this.props.program,
@@ -109,6 +115,9 @@ class ProgramBlockEditor extends React.Component<ProgramBlockEditorProps, Progra
 
     handleClickDelete = (index: number) => {
         this.props.audioManager.playSound('delete');
+        if (this.props.pausedProgramStepNum != null && index <= this.props.pausedProgramStepNum) {
+            this.props.setPausedProgramStepNum(this.props.pausedProgramStepNum - 1);
+        }
         this.props.onChangeProgram(ProgramUtils.deleteStep(this.props.program, index));
         this.handleCloseActionPanelFocusTrap();
     };
@@ -231,11 +240,13 @@ class ProgramBlockEditor extends React.Component<ProgramBlockEditorProps, Progra
 
     makeProgramBlock(programStepNumber: number, command: string) {
         const active = this.programStepIsActive(programStepNumber);
+        const paused = this.props.pausedProgramStepNum === programStepNumber;
         const hasActionPanelControl = this.props.actionPanelStepIndex === programStepNumber;
         const classes = classNames(
             'ProgramBlockEditor__program-block',
             active && 'ProgramBlockEditor__program-block--active',
-            hasActionPanelControl && 'ProgramBlockEditor__program-block--pressed'
+            hasActionPanelControl && 'ProgramBlockEditor__program-block--pressed',
+            paused && 'ProgramBlockEditor__program-block--paused'
         );
         let ariaLabel = this.props.intl.formatMessage(
             { id: `ProgramBlockEditor.command.${command}` },
@@ -396,15 +407,19 @@ class ProgramBlockEditor extends React.Component<ProgramBlockEditorProps, Progra
                 <div className='ProgramBlockEditor__footer'>
                     <div className='ProgramBlockEditor__run'>
                         <AriaDisablingButton
-                            aria-label={`${this.props.intl.formatMessage({id:'PlayButton.run'})} ${this.props.program.join(' ')}`}
-                            className={this.props.interpreterIsRunning ?
-                                'ProgramBlockEditor__run-button ProgramBlockEditor__run-button--pressed' :
-                                'ProgramBlockEditor__run-button'}
+                            aria-label={
+                                this.props.interpreterIsRunning ?
+                                this.props.intl.formatMessage({id:'PlayButton.pause'}) :
+                                this.props.intl.formatMessage({id:'PlayButton.run'})}
+                            className='ProgramBlockEditor__run-button'
                             disabledClassName='ProgramBlockEditor__run-button--disabled'
                             disabled={this.props.runButtonDisabled}
                             onClick={this.props.onClickRunButton}
                         >
-                            <PlayIcon className='ProgramBlockEditor__play-svg' />
+                            {this.props.interpreterIsRunning ?
+                                <PauseIcon className='ProgramBlockEditor__play-svg' /> :
+                                <PlayIcon className='ProgramBlockEditor__play-svg' />
+                            }
                         </AriaDisablingButton>
                     </div>
                 </div>
