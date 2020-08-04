@@ -43,7 +43,8 @@ type AppState = {
     selectedAction: ?string,
     isDraggingCommand: boolean,
     audioEnabled: boolean,
-    actionPanelStepIndex: ?number
+    actionPanelStepIndex: ?number,
+    pausedProgramStepNum: ? number
 };
 
 export default class App extends React.Component<{}, AppState> {
@@ -73,7 +74,8 @@ export default class App extends React.Component<{}, AppState> {
             selectedAction: null,
             isDraggingCommand: false,
             audioEnabled: true,
-            actionPanelStepIndex: null
+            actionPanelStepIndex: null,
+            pausedProgramStepNum: null
         };
 
         this.interpreter = new Interpreter(this.handleRunningStateChange);
@@ -129,6 +131,12 @@ export default class App extends React.Component<{}, AppState> {
         });
     }
 
+    setPausedProgramStepNum = (index: number) => {
+        this.setState({
+            pausedProgramStepNum: index
+        });
+    }
+
     getSelectedCommandName() {
         if (this.state.selectedAction !== null) {
             return this.state.selectedAction;
@@ -138,19 +146,29 @@ export default class App extends React.Component<{}, AppState> {
     }
 
     handleChangeProgram = (program: Program) => {
+        if (program.length === 0) {
+            this.setState({
+                pausedProgramStepNum: null
+            });
+            this.interpreter.stop();
+        }
         this.setState({
             program: program
         });
     };
 
     handleClickRun = () => {
-        this.interpreter.run(this.state.program).then(
-            () => {}, // Do nothing on successful resolution
-            (error) => {
-                console.log(error.name);
-                console.log(error.message);
-            }
-        );
+        if (this.state.interpreterIsRunning) {
+            this.interpreter.pause(this.state.activeProgramStepNum);
+        } else {
+            this.interpreter.run(this.state.program).then(
+                () => {}, // Do nothing on successful resolution
+                (error) => {
+                    console.log(error.name);
+                    console.log(error.message);
+                }
+            );
+        }
     };
 
     handleClickConnectDash = () => {
@@ -212,6 +230,7 @@ export default class App extends React.Component<{}, AppState> {
     handleRunningStateChange = ( interpreterRunningState : InterpreterRunningState) => {
         this.setState({
             activeProgramStepNum: interpreterRunningState.activeStep,
+            pausedProgramStepNum: interpreterRunningState.pausedStep,
             interpreterIsRunning: interpreterRunningState.isRunning
         });
     };
@@ -330,14 +349,14 @@ export default class App extends React.Component<{}, AppState> {
                                     actionPanelStepIndex={this.state.actionPanelStepIndex}
                                     editingDisabled={this.state.interpreterIsRunning === true}
                                     interpreterIsRunning={this.state.interpreterIsRunning}
+                                    pausedProgramStepNum={this.state.pausedProgramStepNum}
                                     program={this.state.program}
                                     selectedAction={this.state.selectedAction}
                                     isDraggingCommand={this.state.isDraggingCommand}
-                                    runButtonDisabled={
-                                        this.state.interpreterIsRunning ||
-                                        programIsEmpty(this.state.program)}
+                                    runButtonDisabled={programIsEmpty(this.state.program)}
                                     audioManager={this.audioManager}
                                     focusTrapManager={this.focusTrapManager}
+                                    setPausedProgramStepNum={this.setPausedProgramStepNum}
                                     onClickRunButton={this.handleClickRun}
                                     onChangeProgram={this.handleChangeProgram}
                                     onChangeActionPanelStepIndex={this.handleChangeActionPanelStepIndex}
