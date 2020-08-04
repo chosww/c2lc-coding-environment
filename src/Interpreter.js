@@ -98,7 +98,7 @@ export default class Interpreter {
         });
     }
 
-    pause(index: number): void {
+    pause(index: ?number): void {
         this.isRunning = false;
         this.pausedIndex = index;
         this.onRunningStateChange({isRunning: this.isRunning, activeStep: null, pausedStep: index});
