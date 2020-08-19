@@ -9,3 +9,11 @@
     stroke-width: 1;
     fill: none;
 }
+
+:export {
+    sceneMinX: -$c2lc-scene-grid-cell-num-column * $c2lc-scene-grid-cell-width / 2;
+    sceneMinY: -$c2lc-scene-grid-cell-num-row * $c2lc-scene-grid-cell-width / 2;
+    characterRadius: $c2lc-scene-grid-cell-width * 0.8 / 2;
+    characterWidth: $c2lc-scene-grid-cell-width * 0.6;
+    characterHeight: $c2lc-scene-grid-cell-width * 0.6;
+}
