@@ -2,10 +2,9 @@
 
 import Interpreter from './Interpreter';
 import type {CommandHandler} from './Interpreter';
-import type {InterpreterRunningState} from './Interpreter';
 
 function makeIncrement(varName: string): CommandHandler {
-    return (interpreter) => {
+    return (interpreter: Interpreter) => {
         return new Promise((resolve, reject) => {
             setTimeout(() => {
                 interpreter.memory[varName] = interpreter.memory[varName] + 1;
@@ -16,13 +15,13 @@ function makeIncrement(varName: string): CommandHandler {
 }
 
 test('New Interpreter has an empty program', () => {
-    const interpreter = new Interpreter(()=>{});
+    const interpreter = new Interpreter(()=>{}, 1000);
     expect(interpreter.program.length).toBe(0);
     expect(interpreter.programCounter).toBe(0);
 });
 
 test('Stepping an empty program leaves the program counter at 0', (done) => {
-    const interpreter = new Interpreter(()=>{});
+    const interpreter = new Interpreter(()=>{}, 1000);
     expect(interpreter.programCounter).toBe(0);
     interpreter.step().then(() => {
         expect(interpreter.programCounter).toBe(0);
@@ -31,7 +30,7 @@ test('Stepping an empty program leaves the program counter at 0', (done) => {
 });
 
 test('Step a program with 1 command', (done) => {
-    const interpreter = new Interpreter(()=>{});
+    const interpreter = new Interpreter(()=>{}, 1000);
     interpreter.addCommandHandler('increment-x', 'test', makeIncrement('x'));
     interpreter.setProgram(['increment-x']);
     interpreter.memory.x = 10;
@@ -51,7 +50,7 @@ test('Step a program with 1 command', (done) => {
 });
 
 test('Step a program with 2 commands', (done) => {
-    const interpreter = new Interpreter(()=>{});
+    const interpreter = new Interpreter(()=>{}, 1000);
     interpreter.addCommandHandler('increment-x', 'test', makeIncrement('x'));
     interpreter.setProgram(['increment-x', 'increment-x']);
     interpreter.memory.x = 10;
@@ -75,7 +74,7 @@ test('Step a program with 2 commands', (done) => {
 });
 
 test('Step a program with 2 handlers for the same command', (done) => {
-    const interpreter = new Interpreter(()=>{});
+    const interpreter = new Interpreter(()=>{}, 1000);
     interpreter.addCommandHandler('increment', 'x', makeIncrement('x'));
     interpreter.addCommandHandler('increment', 'y', makeIncrement('y'));
     interpreter.setProgram(['increment']);
@@ -94,14 +93,14 @@ test('Step a program with 2 handlers for the same command', (done) => {
 });
 
 test('Stepping a program with an unknown command rejects with Error', () => {
-    const interpreter = new Interpreter(()=>{});
+    const interpreter = new Interpreter(()=>{}, 1000);
     interpreter.setProgram(['unknown-command']);
 
     return expect(interpreter.step()).rejects.toThrow('Unknown command: unknown-command');
 });
 
 test('Do a command without a program', (done) => {
-    const interpreter = new Interpreter(()=>{});
+    const interpreter = new Interpreter(()=>{}, 1000);
     interpreter.addCommandHandler('increment-x', 'test', makeIncrement('x'));
     interpreter.setProgram([]);
     interpreter.memory.x = 10;
@@ -116,7 +115,7 @@ test('Do a command without a program', (done) => {
 });
 
 test('Do a command with a program', (done) => {
-    const interpreter = new Interpreter(()=>{});
+    const interpreter = new Interpreter(()=>{}, 1000);
     interpreter.addCommandHandler('increment-x', 'test', makeIncrement('x'));
     interpreter.addCommandHandler('increment-y', 'test', makeIncrement('y'));
     interpreter.setProgram(['increment-y']);
@@ -142,13 +141,13 @@ test('Do a command with a program', (done) => {
 });
 
 test('Doing an unknown command rejects with Error', () => {
-    const interpreter = new Interpreter(()=>{});
+    const interpreter = new Interpreter(()=>{}, 1000);
     return expect(interpreter.doCommand('unknown-command')).rejects.toThrow('Unknown command: unknown-command');
 });
 
 test('onRunningStateChange is called on run() empty program', (done) => {
     const mockStateChangeHandler = jest.fn();
-    const interpreter = new Interpreter(mockStateChangeHandler);
+    const interpreter = new Interpreter(mockStateChangeHandler, 1000);
 
     interpreter.run([]).then(() => {
         expect(mockStateChangeHandler.mock.calls.length).toBe(1);
@@ -159,7 +158,7 @@ test('onRunningStateChange is called on run() empty program', (done) => {
 
 test('onRunningStateChange is called on run() program with one step', (done) => {
     const mockStateChangeHandler = jest.fn();
-    const interpreter = new Interpreter(mockStateChangeHandler);
+    const interpreter = new Interpreter(mockStateChangeHandler, 1000);
     interpreter.addCommandHandler('step1', 'test', (interpreter) => {
         return new Promise((resolve, reject) => {
             expect(mockStateChangeHandler.mock.calls.length).toBe(1);
@@ -177,7 +176,7 @@ test('onRunningStateChange is called on run() program with one step', (done) => 
 
 test('onRunningStateChange is called on run() program with two steps', (done) => {
     const mockStateChangeHandler = jest.fn();
-    const interpreter = new Interpreter(mockStateChangeHandler);
+    const interpreter = new Interpreter(mockStateChangeHandler, 1000);
     interpreter.addCommandHandler('step1', 'test', (interpreter) => {
         return new Promise((resolve, reject) => {
             expect(mockStateChangeHandler.mock.calls.length).toBe(1);
@@ -203,7 +202,7 @@ test('onRunningStateChange is called on run() program with two steps', (done) =>
 
 test('Do not continue through program if stop is called', (done) => {
     const mockStateChangeHandler = jest.fn();
-    const interpreter = new Interpreter(mockStateChangeHandler);
+    const interpreter = new Interpreter(mockStateChangeHandler, 1000);
     interpreter.addCommandHandler('step1', 'test', (interpreter) => {
         return new Promise((resolve, reject) => {
             expect(mockStateChangeHandler.mock.calls.length).toBe(1);
@@ -227,8 +226,8 @@ test('Do not continue through program if stop is called', (done) => {
 
 test('run() Promise is rejected on first command error', (done) => {
     const mockStateChangeHandler = jest.fn();
-    const interpreter = new Interpreter(mockStateChangeHandler);
-    interpreter.run(['unknown-command1', 'unknown-command2']).then(() => {}, (error) => {
+    const interpreter = new Interpreter(mockStateChangeHandler, 1000);
+    interpreter.run(['unknown-command1', 'unknown-command2']).then(() => {}, (error: Error) => {
         expect(error.message).toBe('Unknown command: unknown-command1');
         expect(mockStateChangeHandler.mock.calls.length).toBe(2);
         expect(mockStateChangeHandler.mock.calls[0][0]).toStrictEqual({'isRunning': true, 'activeStep': 0});
@@ -236,3 +235,30 @@ test('run() Promise is rejected on first command error', (done) => {
         done();
     });
 });
+
+test('Should initiallize stepTime value from constructor and update on setStepTime', () => {
+    expect.assertions(2);
+    const initialStepTimeValue = 1000;
+    const interpreter = new Interpreter(() => {}, initialStepTimeValue);
+    expect(interpreter.stepTimeMs).toBe(initialStepTimeValue);
+
+    const newStepTimeValue = 2000;
+    interpreter.setStepTime(newStepTimeValue);
+    expect(interpreter.stepTimeMs).toBe(newStepTimeValue);
+});
+
+test('Each command handler get called with step time specified in the class property', () => {
+    const mockCommandHandler = jest.fn();
+    const interpreter = new Interpreter(()=>{}, 1000);
+    interpreter.addCommandHandler('test', 'test', mockCommandHandler);
+    interpreter.doCommand('test');
+    expect(mockCommandHandler.mock.calls.length).toBe(1);
+    expect(mockCommandHandler.mock.calls[0][1]).toBe(interpreter.stepTimeMs);
+
+    const newStepTimeValue = 2000;
+    interpreter.setStepTime(newStepTimeValue);
+    expect(interpreter.stepTimeMs).toBe(newStepTimeValue);
+    interpreter.doCommand('test');
+    expect(mockCommandHandler.mock.calls.length).toBe(2);
+    expect(mockCommandHandler.mock.calls[1][1]).toBe(interpreter.stepTimeMs);
+})

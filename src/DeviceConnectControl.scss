@@ -37,7 +37,7 @@ button.btn.DeviceConnectControl__button:hover {
 }
 
 .DeviceConnectControl__dash-icon {
-    opacity: 50%;
+    opacity: 0.5;
     width: 2.5rem;
     height: 2.5rem;
     position: relative;
@@ -45,7 +45,7 @@ button.btn.DeviceConnectControl__button:hover {
 }
 
 .DeviceConnectControl__dash-icon--connected {
-    opacity: 100%;
+    opacity: 1;
 }
 
 .DeviceConnectControl svg {

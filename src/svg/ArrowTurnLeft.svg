@@ -1,1 +1,6 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="-2 -1 20 21"><path d="M2.85,7.24H10.9a5.16,5.16,0,0,1,5.15,5.16V18" transform="translate(-1.35 -0.04)" style="fill:none;stroke:#000;stroke-linecap:round;stroke-linejoin:round;stroke-width:3px"/><polyline points="6.38 12.91 1.5 7.2 6.38 1.5" style="fill:none;stroke:#000;stroke-linecap:round;stroke-linejoin:round;stroke-width:3px"/></svg>
+<svg width="51" height="51" viewBox="-5.5 0 51 51" fill="none" xmlns="http://www.w3.org/2000/svg">
+<path d="M12.5714 18.6231L5.25182 11.8937L9.66431 3" stroke="black" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M8.01397 43.6383C10.9339 45.3836 14.2904 46.2635 17.692 46.1753C21.0937 46.0871 24.4002 45.0345 27.2262 43.1402C30.0521 41.2459 32.2809 38.588 33.6526 35.4764C35.0244 32.3649 35.4826 28.928 34.9738 25.5664C34.465 22.2048 33.0101 19.0572 30.7789 16.4906C28.5477 13.9239 25.6321 12.0441 22.372 11.0702C19.112 10.0964 15.6419 10.0686 12.3664 10.9903" stroke="black" stroke-width="6" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="1.01 1.01"/>
+<path d="M11.1776 11.3481L10.0642 11.7822" stroke="black" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
+<ellipse rx="3.97681" ry="3.97269" transform="matrix(-1 0 0 1 17.1333 29.2334)" fill="black"/>
+</svg>

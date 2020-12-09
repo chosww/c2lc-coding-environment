@@ -1,0 +1,36 @@
+@import 'variables';
+
+.RefreshButton-svg {
+    width: 1.7rem;
+    height: 1.7rem;
+}
+
+button.btn.RefreshButton svg {
+    stroke: #000;
+}
+
+button.btn.RefreshButton {
+    padding: 0.5rem;
+    border: 1px solid #FFF;
+    border-radius: 50%;
+    background-color: #FFF;
+}
+
+button.btn.RefreshButton:not(:focus) {
+    box-shadow: 0 0 8px rgba(0, 0, 0, 0.25);
+}
+
+button.btn.RefreshButton.RefreshButton--disabled:active:focus {
+    background-color: $c2lc-primary-button-color;
+    box-shadow: 0 0 0 $c2lc-focus-indicator-width $c2lc-focus-indicator-color;
+}
+
+button.btn.RefreshButton.RefreshButton--disabled,
+button.btn.RefreshButton.RefreshButton--disabled:active:focus {
+    background-color: #FFF;
+    cursor: default;
+}
+
+button.btn.RefreshButton--disabled svg {
+    stroke: $c2lc-disabled-color;
+}

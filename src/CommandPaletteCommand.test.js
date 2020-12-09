@@ -5,7 +5,6 @@ import Adapter from 'enzyme-adapter-react-16';
 import { shallow, configure } from 'enzyme';
 import CommandBlock from './CommandBlock';
 import { createIntl } from 'react-intl';
-import App from './App';
 import AudioManager from './AudioManager';
 import CommandPaletteCommand from './CommandPaletteCommand';
 
@@ -19,6 +18,7 @@ function hasPressedClass(wrapper) {
 }
 
 function getAriaPressedValue(wrapper) {
+    // $FlowFixMe: The flow-typed definitions for enzyme introduce a type-checking error here.
     return wrapper.find(CommandBlock).getElement().props['aria-pressed'];
 }
 
@@ -26,7 +26,7 @@ const intl = createIntl({
     locale: 'en',
     defaultLocale: 'en',
     messages: {
-        'CommandPaletteCommand.forward' : 'forward'
+        'Command.forward1' : 'forward1'
     }
 });
 
@@ -34,7 +34,7 @@ test('Pressed state is false when selecedCommandName is null', () => {
     const wrapper = shallow(
         <CommandPaletteCommand.WrappedComponent
             intl={intl}
-            commandName='forward'
+            commandName='forward1'
             selectedCommandName={null}
             onChange={() => {}}/>
     );
@@ -46,8 +46,8 @@ test('Pressed state is false when selecedCommandName is another command', () => 
     const wrapper = shallow(
         <CommandPaletteCommand.WrappedComponent
             intl={intl}
-            commandName='forward'
-            selectedCommandName='left'
+            commandName='forward1'
+            selectedCommandName='left45'
             onChange={() => {}}/>
     );
     expect(hasPressedClass(wrapper)).toBe(false);
@@ -58,8 +58,8 @@ test('Pressed state is true when selecedCommandName is this command', () => {
     const wrapper = shallow(
         <CommandPaletteCommand.WrappedComponent
             intl={intl}
-            commandName='forward'
-            selectedCommandName='forward'
+            commandName='forward1'
+            selectedCommandName='forward1'
             onChange={() => {}}/>
     );
     expect(hasPressedClass(wrapper)).toBe(true);
@@ -75,7 +75,7 @@ test('Clicking the button toggles selectedCommandName and plays its sound', () =
     const wrapper = shallow(
         <CommandPaletteCommand.WrappedComponent
             intl={intl}
-            commandName='forward'
+            commandName='forward1'
             selectedCommandName={null}
             audioManager={audioManagerInstance}
             onChange={mockChangeHandler}/>
@@ -85,20 +85,20 @@ test('Clicking the button toggles selectedCommandName and plays its sound', () =
 
     // Initially the command is not selected
     button.simulate('click');
-    // Verify that the audioManager playSound is called
-    expect(audioManagerMock.playSound.mock.calls.length).toBe(1);
-    expect(audioManagerMock.playSound.mock.calls[0][0]).toBe('forward');
+    // Verify that the audioManager playAnnouncement is called
+    expect(audioManagerMock.playAnnouncement.mock.calls.length).toBe(1);
+    expect(audioManagerMock.playAnnouncement.mock.calls[0][0]).toBe('forward1');
     // Verify that onChange is called with the commandName
     expect(mockChangeHandler.mock.calls.length).toBe(1);
-    expect(mockChangeHandler.mock.calls[0][0]).toBe('forward');
+    expect(mockChangeHandler.mock.calls[0][0]).toBe('forward1');
     // Update the selectedCommandName
-    wrapper.setProps({selectedCommandName: 'forward'});
+    wrapper.setProps({selectedCommandName: 'forward1'});
     wrapper.update();
     // Click again
     button.simulate('click');
-    // Verify that the audioManager playSound is called again
-    expect(audioManagerMock.playSound.mock.calls.length).toBe(2);
-    expect(audioManagerMock.playSound.mock.calls[1][0]).toBe('forward');
+    // Verify that the audioManager playAnnouncement is called again
+    expect(audioManagerMock.playAnnouncement.mock.calls.length).toBe(2);
+    expect(audioManagerMock.playAnnouncement.mock.calls[1][0]).toBe('forward1');
     // And verify that the command is toggled off
     expect(mockChangeHandler.mock.calls.length).toBe(2);
     expect(mockChangeHandler.mock.calls[1][0]).toBe(null);

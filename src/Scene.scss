@@ -1,0 +1,31 @@
+@import 'variables';
+
+.Scene {
+    display: inline-block;
+    box-sizing: border-box;
+    width: 100%;
+    height: auto;
+    border-width: $c2lc-scene-border-width $c2lc-scene-border-width 0 $c2lc-scene-border-width;
+    border-color: $c2lc-scene-border-color;
+    border-style: $c2lc-scene-border-style;
+}
+
+.Scene svg {
+    overflow: visible;
+}
+
+.Scene__grid-line {
+    stroke: #DDD;
+    stroke-width: 0.01;
+}
+
+.Scene__grid-label {
+    fill: #555;
+    font: bold 0.01em sans-serif;
+}
+
+.Scene__path-line {
+    stroke: #222;
+    stroke-width: 0.03;
+    stroke-linecap: round;
+}

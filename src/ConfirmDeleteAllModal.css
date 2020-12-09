@@ -1,31 +1,56 @@
-.ConfrimDeleteAllModal {
+.ConfirmDeleteAllModal {
     width: 35rem;
+    margin: auto;
 }
 
-.ConfrimDeleteAllModal__content {
+.ConfirmDeleteAllModal__content {
+    display: grid;
+    grid-template-rows: 1fr 1fr;
     padding: 3rem 4rem;
 }
 
-.ConfrimDeleteAllModal__header {
+.ConfirmDeleteAllModal__header {
     font-weight: bold;
+    display: grid;
+    grid-template-columns: 1fr 5fr;
+    grid-row-start: 1;
+    grid-row-end: 2;
+    margin-top: 2rem;
 }
 
-.ConfrimDeleteAllModal__warning-svg {
+.ConfirmDeleteAllModal__warning-svg {
+    grid-column-start: 1;
+    grid-column-end: 2;
     width: 2rem;
     height: 2rem;
-    margin-right: 0.5rem;
-    margin-bottom: 0.5rem;
 }
 
-.ConfrimDeleteAllModal__body {
-    margin-top: 1rem;
-}
-
-.ConfrimDeleteAllModal__footer {
-    margin-top: 3rem;
+.ConfirmDeleteAllModal__footer {
+    grid-row-start: 2;
+    grid-row-end: 3;
+    grid-row-start: 2;
+    grid-row-end: 3;
+    margin-top: 2rem;
+    display: flex;
+    justify-content: space-around;
     text-align: center;
+    align-items: center;
 }
 
-.ConfrimDeleteAllModal__option-button {
-    min-width: 11rem;
+.ConfirmDeleteAllModal__option-button {
+    width: 11rem;
+    margin-bottom: 1.5rem;
+}
+
+@media only screen and (max-width: 991px) {
+    .ConfirmDeleteAllModal__footer {
+        flex-direction: column;
+        margin: auto;
+    }
+}
+
+@media only screen and (max-width: 575px) {
+    .ConfirmDeleteAllModal {
+        width: 22rem;
+    }
 }

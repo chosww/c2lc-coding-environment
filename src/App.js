@@ -4,23 +4,36 @@ import React from 'react';
 import { IntlProvider, FormattedMessage } from 'react-intl';
 import { Col, Container, Row } from 'react-bootstrap';
 import AudioManager from './AudioManager';
-import BluetoothApiWarning from './BluetoothApiWarning';
+import CharacterState from './CharacterState';
+import CharacterStateSerializer from './CharacterStateSerializer';
 import CommandPaletteCommand from './CommandPaletteCommand';
+import C2lcURLParams from './C2lcURLParams';
 import DashConnectionErrorModal from './DashConnectionErrorModal';
 import DashDriver from './DashDriver';
-import DeviceConnectControl from './DeviceConnectControl';
 import * as FeatureDetection from './FeatureDetection';
 import FocusTrapManager from './FocusTrapManager';
 import Interpreter from './Interpreter';
 import type { InterpreterRunningState } from './Interpreter';
+import PlayButton from './PlayButton';
 import ProgramBlockEditor from './ProgramBlockEditor';
+import RefreshButton from './RefreshButton';
+import Scene from './Scene';
+import SceneDimensions from './SceneDimensions';
 import AudioFeedbackToggleSwitch from './AudioFeedbackToggleSwitch';
+import PenDownToggleSwitch from './PenDownToggleSwitch';
+import ProgramSpeedController from './ProgramSpeedController';
 import { programIsEmpty } from './ProgramUtils';
-import * as Utils from './Utils';
+import ProgramSerializer from './ProgramSerializer';
+import ShareButton from './ShareButton';
 import type { DeviceConnectionStatus, Program, RobotDriver } from './types';
+import * as Utils from './Utils';
 import messages from './messages.json';
 import './App.scss';
 import './vendor/dragdroptouch/DragDropTouch.js';
+/* Dash connection removed for version 0.5
+import BluetoothApiWarning from './BluetoothApiWarning';
+import DeviceConnectControl from './DeviceConnectControl';
+*/
 
 // Uncomment to use the FakeRobotDriver (see driver construction below also)
 //import FakeRobotDriver from './FakeRobotDriver';
@@ -30,11 +43,13 @@ type AppContext = {
 };
 
 type AppSettings = {
-    language: string
+    language: string,
+    addNodeExpandedMode: boolean
 };
 
 type AppState = {
     program: Program,
+    characterState: CharacterState,
     settings: AppSettings,
     dashConnectionStatus: DeviceConnectionStatus,
     activeProgramStepNum: ?number,
@@ -44,28 +59,38 @@ type AppState = {
     isDraggingCommand: boolean,
     audioEnabled: boolean,
     actionPanelStepIndex: ?number,
-    pausedProgramStepNum: ? number
+    pausedProgramStepNum: ?number,
+    sceneDimensions: SceneDimensions,
+    drawingEnabled: boolean
 };
 
 export default class App extends React.Component<{}, AppState> {
     appContext: AppContext;
     dashDriver: RobotDriver;
     interpreter: Interpreter;
-    toCommandPaletteNoticeId: string;
     audioManager: AudioManager;
     focusTrapManager: FocusTrapManager;
+    startingCharacterState: CharacterState;
+    programSerializer: ProgramSerializer;
+    characterStateSerializer: CharacterStateSerializer;
+    speedLookUp: Array<number>;
 
-    constructor(props: {}) {
+    constructor(props: any) {
         super(props);
 
         this.appContext = {
             bluetoothApiIsAvailable: FeatureDetection.bluetoothApiIsAvailable()
         };
 
+        // Begin facing East
+        this.startingCharacterState = new CharacterState(0, 0, 2, []);
+
         this.state = {
             program: [],
+            characterState: this.startingCharacterState,
             settings: {
-                language: 'en'
+                language: 'en',
+                addNodeExpandedMode: true
             },
             dashConnectionStatus: 'notConnected',
             activeProgramStepNum: null,
@@ -75,48 +100,213 @@ export default class App extends React.Component<{}, AppState> {
             isDraggingCommand: false,
             audioEnabled: true,
             actionPanelStepIndex: null,
-            pausedProgramStepNum: null
+            pausedProgramStepNum: null,
+            sceneDimensions: new SceneDimensions(17, 9),
+            drawingEnabled: true
         };
 
-        this.interpreter = new Interpreter(this.handleRunningStateChange);
+        this.interpreter = new Interpreter(this.handleRunningStateChange, 1000);
 
-        const playCommandAndWait = (commandName: string): Promise<void> => {
-            this.audioManager.playSound(commandName);
-            return new Promise((resolve, reject) => {
-                setTimeout(() => {
-                    resolve();
-                }, 1750);
-            });
-        };
+        this.speedLookUp = [2000, 1500, 1000, 500, 250];
+
+        this.programSerializer = new ProgramSerializer();
+
+        this.characterStateSerializer = new CharacterStateSerializer();
 
         this.interpreter.addCommandHandler(
-            'forward',
-            'playCommandAndWait',
-            () => {
-                return playCommandAndWait('forward');
+            'forward1',
+            'moveCharacter',
+            (interpreter, stepTimeMs) => {
+                // TODO: Enable announcements again.
+                // this.audioManager.playAnnouncement('forward1');
+                this.setState((state) => {
+                    const newCharacterState = state.characterState.forward(1, state.drawingEnabled);
+
+                    // We have to start the sound here because this is where we know the new character state.
+                    this.audioManager.playSoundForCharacterState("movement", stepTimeMs, newCharacterState);
+
+                    return {
+                        characterState: newCharacterState
+                    };
+                });
+                return Utils.makeDelayedPromise(stepTimeMs);
             }
         );
 
         this.interpreter.addCommandHandler(
-            'left',
-            'playCommandAndWait',
-            () => {
-                return playCommandAndWait('left');
+            'forward2',
+            'moveCharacter',
+            (interpreter, stepTimeMs) => {
+                // TODO: Enable announcements again.
+                // this.audioManager.playAnnouncement('forward2');
+                this.setState((state) => {
+                    const newCharacterState = state.characterState.forward(2, state.drawingEnabled);
+
+                    // We have to start the sound here because this is where we know the new character state.
+                    this.audioManager.playSoundForCharacterState("movement", stepTimeMs, newCharacterState);
+
+                    return {
+                        characterState: newCharacterState
+                    };
+                });
+                return Utils.makeDelayedPromise(stepTimeMs);
             }
         );
 
         this.interpreter.addCommandHandler(
-            'right',
-            'playCommandAndWait',
-            () => {
-                return playCommandAndWait('right');
+            'forward3',
+            'moveCharacter',
+            (interpreter, stepTimeMs) => {
+                // TODO: Enable announcements again.
+                // this.audioManager.playAnnouncement('forward3');
+                this.setState((state) => {
+                    const newCharacterState = state.characterState.forward(3, state.drawingEnabled);
+
+                    // We have to start the sound here because this is where we know the new character state.
+                    this.audioManager.playSoundForCharacterState("movement", stepTimeMs, newCharacterState);
+                    return {
+                        characterState: newCharacterState
+                    };
+                });
+                return Utils.makeDelayedPromise(stepTimeMs);
             }
         );
 
-        // For FakeRobotDriver, replace with: this.dashDriver = new FakeRobotDriver();
+        this.interpreter.addCommandHandler(
+            'left45',
+            'moveCharacter',
+            (interpreter, stepTimeMs) => {
+                // We want for a 180 degree turn to take the whole movement delay, and for a 45 degree to take 1/4 of that.
+                const soundTime = stepTimeMs / 4;
+
+                // TODO: Enable announcements again.
+                // this.audioManager.playAnnouncement('left45');
+                this.setState((state) => {
+                    const newCharacterState = state.characterState.turnLeft(1);
+
+                    // We have to start the sound here because this is where we know the new character state.
+                    this.audioManager.playSoundForCharacterState("left", soundTime, newCharacterState);
+
+                    return {
+                        characterState: newCharacterState
+                    };
+                });
+                return Utils.makeDelayedPromise(stepTimeMs);
+            }
+        );
+
+        this.interpreter.addCommandHandler(
+            'left90',
+            'moveCharacter',
+            (interpreter, stepTimeMs) => {
+                // We want for a 180 degree turn to take the whole movement delay, and for a 90 degree turn to take 1/2 of that.
+                const soundTime = stepTimeMs / 2;
+
+                // TODO: Enable announcements again.
+                // this.audioManager.playAnnouncement('left90');
+                this.setState((state) => {
+                    const newCharacterState = state.characterState.turnLeft(2);
+
+                    // We have to start the sound here because this is where we know the new character state.
+                    this.audioManager.playSoundForCharacterState("left", soundTime, newCharacterState);
+
+                    return {
+                        characterState: newCharacterState
+                    };
+                });
+                return Utils.makeDelayedPromise(stepTimeMs);
+            }
+        );
+
+        this.interpreter.addCommandHandler(
+            'left180',
+            'moveCharacter',
+            (interpreter, stepTimeMs) => {
+                // TODO: Enable announcements again.
+                // this.audioManager.playAnnouncement('left180');
+                this.setState((state) => {
+                    const newCharacterState = state.characterState.turnLeft(4);
+
+                    // We have to start the sound here because this is where we know the new character state.
+                    this.audioManager.playSoundForCharacterState("left", stepTimeMs,  newCharacterState);
+
+                    return {
+                        characterState: newCharacterState
+                    };
+                });
+                return Utils.makeDelayedPromise(stepTimeMs);
+            }
+        );
+
+        this.interpreter.addCommandHandler(
+            'right45',
+            'moveCharacter',
+            (interpreter, stepTimeMs) => {
+                // We want for a 180 degree turn to take the whole movement delay, and for a 45 degree turn to take 1/4 of that.
+                const soundTime = stepTimeMs / 2;
+
+                // TODO: Enable announcements again.
+                // this.audioManager.playAnnouncement('right45');
+                this.setState((state) => {
+                    const newCharacterState = state.characterState.turnRight(1);
+
+                    // We have to start the sound here because this is where we know the new character state.
+                    this.audioManager.playSoundForCharacterState("right", soundTime, newCharacterState);
+
+                    return {
+                        characterState: newCharacterState
+                    };
+                });
+                return Utils.makeDelayedPromise(stepTimeMs);
+            }
+        );
+
+        this.interpreter.addCommandHandler(
+            'right90',
+            'moveCharacter',
+            (interpreter, stepTimeMs) => {
+                // We want for a 180 degree turn to take the whole movement delay, and for a 90 degree to take 1/2 of that.
+                const soundTime = stepTimeMs / 2;
+
+                // TODO: Enable announcements again.
+                // this.audioManager.playAnnouncement('right90');
+                this.setState((state) => {
+                    const newCharacterState = state.characterState.turnRight(2);
+
+                    // We have to start the sound here because this is where we know the new character state.
+                    this.audioManager.playSoundForCharacterState("right", soundTime, newCharacterState);
+
+                    return {
+                        characterState: newCharacterState
+                    };
+                });
+                return Utils.makeDelayedPromise(stepTimeMs);
+            }
+        );
+
+        this.interpreter.addCommandHandler(
+            'right180',
+            'moveCharacter',
+            (interpreter, stepTimeMs) => {
+                // TODO: Enable announcements again.
+                // this.audioManager.playAnnouncement('right180');
+                this.setState((state) => {
+                    const newCharacterState = state.characterState.turnRight(4);
+
+                    // We have to start the sound here because this is where we know the new character state.
+                    this.audioManager.playSoundForCharacterState("right", stepTimeMs, newCharacterState);
+
+                    return {
+                        characterState: newCharacterState
+                    };
+                });
+                return Utils.makeDelayedPromise(stepTimeMs);
+            }
+        );
+
+        // For FakeRobotDriver, replace with:
+        // this.dashDriver = new FakeRobotDriver();
         this.dashDriver = new DashDriver();
-
-        this.toCommandPaletteNoticeId = Utils.generateId('toCommandPaletteNotice');
 
         this.audioManager = new AudioManager(this.state.audioEnabled);
 
@@ -157,13 +347,13 @@ export default class App extends React.Component<{}, AppState> {
         });
     };
 
-    handleClickRun = () => {
+    handleClickPlay = () => {
         if (this.state.interpreterIsRunning) {
             this.interpreter.pause(this.state.activeProgramStepNum);
         } else {
             this.interpreter.run(this.state.program).then(
                 () => {}, // Do nothing on successful resolution
-                (error) => {
+                (error: Error) => {
                     console.log(error.name);
                     console.log(error.message);
                 }
@@ -180,7 +370,7 @@ export default class App extends React.Component<{}, AppState> {
             this.setState({
                 dashConnectionStatus: 'connected'
             });
-        }, (error) => {
+        }, (error: Error) => {
             console.log('ERROR');
             console.log(error.name);
             console.log(error.message);
@@ -241,8 +431,14 @@ export default class App extends React.Component<{}, AppState> {
         });
     };
 
+    handleChangeAddNodeExpandedMode = (isAddNodeExpandedMode: boolean) => {
+        this.setStateSettings({
+            addNodeExpandedMode: isAddNodeExpandedMode
+        });
+    };
+
     handleRootClick = (e: SyntheticInputEvent<HTMLInputElement>) => {
-        var element = e.target;
+        let element = e.target;
         // Walk up the document tree until we hit the top, or we find that
         // we are within an action panel group area
         while (element != null && element.dataset) {
@@ -268,6 +464,46 @@ export default class App extends React.Component<{}, AppState> {
         });
     }
 
+    handleTogglePenDown = (drawingEnabled: boolean) => {
+        this.setState({
+            drawingEnabled: drawingEnabled
+        });
+    }
+
+    handleChangeProgramSpeed = (stepTimeMs: number) => {
+        this.interpreter.setStepTime(stepTimeMs);
+    }
+
+    renderCommandBlocks = () => {
+        const commandNames = [
+            'forward1', 'forward2', 'forward3',
+            'left45', 'left90', 'left180',
+            'right45', 'right90', 'right180'
+        ];
+        const commandBlocks = [];
+
+        for (const [index, value] of commandNames.entries()) {
+            commandBlocks.push(
+                <CommandPaletteCommand
+                    key={`CommandBlock-${index}`}
+                    commandName={value}
+                    selectedCommandName={this.getSelectedCommandName()}
+                    audioManager={this.audioManager}
+                    onChange={this.handleCommandFromCommandPalette}
+                    onDragStart={this.handleDragStartCommand}
+                    onDragEnd={this.handleDragEndCommand}/>
+            )
+        }
+
+        return commandBlocks;
+    }
+
+    handleRefresh = () => {
+        this.setState({
+            characterState: this.startingCharacterState
+        });
+    }
+
     render() {
         return (
             <IntlProvider
@@ -288,6 +524,7 @@ export default class App extends React.Component<{}, AppState> {
                                             value={this.state.audioEnabled}
                                             onChange={this.handleToggleAudioFeedback} />
                                     </div>
+                                    {/* Dash connection removed for version 0.5
                                     <DeviceConnectControl
                                         disabled={
                                             !this.appContext.bluetoothApiIsAvailable ||
@@ -296,11 +533,13 @@ export default class App extends React.Component<{}, AppState> {
                                         onClickConnect={this.handleClickConnectDash}>
                                         <FormattedMessage id='App.connectToDash' />
                                     </DeviceConnectControl>
+                                    */}
                                 </div>
                             </Row>
                         </Container>
                     </header>
                     <Container role='main' className='mb-5'>
+                        {/* Dash connection removed for version 0.5
                         {!this.appContext.bluetoothApiIsAvailable &&
                             <Row className='App__bluetooth-api-warning-section'>
                                 <Col>
@@ -308,42 +547,41 @@ export default class App extends React.Component<{}, AppState> {
                                 </Col>
                             </Row>
                         }
+                        */}
+                        <div className='App__scene-container'>
+                            <Scene
+                                dimensions={this.state.sceneDimensions}
+                                characterState={this.state.characterState}
+                            />
+                            <div className='App__scene-controls'>
+                                <div className='App__scene-controls-group'>
+                                    <div className='App__penDown-toggle-switch-container'>
+                                        <PenDownToggleSwitch
+                                            className='App__penDown-toggle-switch'
+                                            value={this.state.drawingEnabled}
+                                            onChange={this.handleTogglePenDown}/>
+                                    </div>
+                                    <div className='App__refreshButton-container'>
+                                        <RefreshButton
+                                            disabled={this.state.interpreterIsRunning}
+                                            onClick={this.handleRefresh}
+                                        />
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                         <Row className='App__program-section' noGutters={true}>
-                            <Col md={4} lg={3} className='pr-md-3 mb-3 mb-md-0'>
+                            <Col md={5} lg={4} className='pr-md-4 mb-4 mb-md-0'>
                                 <div className='App__command-palette'>
                                     <h2 className='App__command-palette-heading'>
                                         <FormattedMessage id='CommandPalette.movementsTitle' />
                                     </h2>
-                                    <div className='App__command-palette-command'>
-                                        <CommandPaletteCommand
-                                            commandName='forward'
-                                            selectedCommandName={this.getSelectedCommandName()}
-                                            audioManager={this.audioManager}
-                                            onChange={this.handleCommandFromCommandPalette}
-                                            onDragStart={this.handleDragStartCommand}
-                                            onDragEnd={this.handleDragEndCommand}/>
-                                    </div>
-                                    <div className='App__command-palette-command'>
-                                        <CommandPaletteCommand
-                                            commandName='right'
-                                            selectedCommandName={this.getSelectedCommandName()}
-                                            audioManager={this.audioManager}
-                                            onChange={this.handleCommandFromCommandPalette}
-                                            onDragStart={this.handleDragStartCommand}
-                                            onDragEnd={this.handleDragEndCommand}/>
-                                    </div>
-                                    <div className='App__command-palette-command'>
-                                        <CommandPaletteCommand
-                                            commandName='left'
-                                            selectedCommandName={this.getSelectedCommandName()}
-                                            audioManager={this.audioManager}
-                                            onChange={this.handleCommandFromCommandPalette}
-                                            onDragStart={this.handleDragStartCommand}
-                                            onDragEnd={this.handleDragEndCommand}/>
+                                    <div className='App__command-palette-commands'>
+                                        {this.renderCommandBlocks()}
                                     </div>
                                 </div>
                             </Col>
-                            <Col md={8} lg={9}>
+                            <Col md={7} lg={8}>
                                 <ProgramBlockEditor
                                     activeProgramStepNum={this.state.activeProgramStepNum}
                                     actionPanelStepIndex={this.state.actionPanelStepIndex}
@@ -353,18 +591,37 @@ export default class App extends React.Component<{}, AppState> {
                                     program={this.state.program}
                                     selectedAction={this.state.selectedAction}
                                     isDraggingCommand={this.state.isDraggingCommand}
-                                    runButtonDisabled={programIsEmpty(this.state.program)}
                                     audioManager={this.audioManager}
                                     focusTrapManager={this.focusTrapManager}
+                                    addNodeExpandedMode={this.state.settings.addNodeExpandedMode}
                                     setPausedProgramStepNum={this.setPausedProgramStepNum}
-                                    onClickRunButton={this.handleClickRun}
                                     onChangeProgram={this.handleChangeProgram}
                                     onChangeActionPanelStepIndex={this.handleChangeActionPanelStepIndex}
+                                    onChangeAddNodeExpandedMode={this.handleChangeAddNodeExpandedMode}
                                 />
                             </Col>
                         </Row>
+                        <div className='App__playAndShare-container'>
+                            <div className='App__playControl-container'>
+                                <div className='App__playButton-container'>
+                                    <PlayButton
+                                        interpreterIsRunning={this.state.interpreterIsRunning}
+                                        disabled={programIsEmpty(this.state.program)}
+                                        onClick={this.handleClickPlay}
+                                    />
+                                </div>
+                                <ProgramSpeedController
+                                    values={this.speedLookUp}
+                                    onChange={this.handleChangeProgramSpeed}
+                                />
+                            </div>
+                            <div className='App__shareButton-container'>
+                                <ShareButton/>
+                            </div>
+                        </div>
                     </Container>
                 </div>
+
                 <DashConnectionErrorModal
                     show={this.state.showDashConnectionError}
                     onCancel={this.handleCancelDashConnection}
@@ -373,10 +630,46 @@ export default class App extends React.Component<{}, AppState> {
         );
     }
 
+    componentDidMount() {
+        if (window.location.search != null) {
+            const params = new C2lcURLParams(window.location.search);
+            const programQuery = params.getProgram();
+            const characterStateQuery = params.getCharacterState();
+            if (programQuery != null && characterStateQuery != null) {
+                try {
+                    this.setState({
+                        program: this.programSerializer.deserialize(programQuery),
+                        characterState: this.characterStateSerializer.deserialize(characterStateQuery)
+                    });
+                } catch(err) {
+                    console.log(`Error parsing program: ${programQuery} or characterState: ${characterStateQuery}`);
+                    console.log(err.toString());
+                }
+            }
+        }
+    }
+
     componentDidUpdate(prevProps: {}, prevState: AppState) {
+        console.log(this.interpreter.program);
+        if (this.state.program !== prevState.program
+            || this.state.characterState !== prevState.characterState) {
+            const serializedProgram = this.programSerializer.serialize(this.state.program);
+            const serializedCharacterState = this.characterStateSerializer.serialize(this.state.characterState);
+            window.history.pushState(
+                {
+                    p: serializedProgram,
+                    c: serializedCharacterState
+                },
+                '',
+                Utils.generateEncodedProgramURL('0.5', serializedProgram, serializedCharacterState));
+        }
         if (this.state.audioEnabled !== prevState.audioEnabled) {
             this.audioManager.setAudioEnabled(this.state.audioEnabled);
         }
+        if (this.state.pausedProgramStepNum !== prevState.pausedProgramStepNum) {
+            this.interpreter.updatePausedIndex(this.state.pausedProgramStepNum);
+        }
+        /* Dash connection removed for version 0.5
         if (this.state.dashConnectionStatus !== prevState.dashConnectionStatus) {
             console.log(this.state.dashConnectionStatus);
 
@@ -395,5 +688,6 @@ export default class App extends React.Component<{}, AppState> {
                 }
             }
         }
+        */
     }
 }

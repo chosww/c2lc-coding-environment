@@ -1,0 +1,5 @@
+@import 'variables';
+
+.AudioFeedbackToggleSwitch:focus {
+    box-shadow: 0 0 0 $c2lc-focus-indicator-width #299DCE;
+}

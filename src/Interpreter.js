@@ -3,7 +3,7 @@
 import type {Program} from './types';
 
 /* eslint-disable no-use-before-define */
-export type CommandHandler = { (Interpreter): Promise<void> };
+export type CommandHandler = { (Interpreter, stepTimeMs: number): Promise<void> };
 /* eslint-enable no-use-before-define */
 
 export type InterpreterRunningState = { isRunning: boolean, activeStep: ?number, pausedStep: ?number }
@@ -18,16 +18,19 @@ export default class Interpreter {
     memory: { [string]: any };
     isRunning: boolean;
     pausedIndex: ?number;
+    stepTimeMs: number;
     onRunningStateChange: (InterpreterRunningState) => void;
 
-    constructor(onRunningStateChange: (InterpreterRunningState) => void) {
+    constructor(onRunningStateChange: (InterpreterRunningState) => void, stepTimeMs: number) {
         this.commands = {};
         this.program = [];
         this.programCounter = 0;
         this.memory = {};
+        // Group isRunning and pausedIndex as a tri state
         this.isRunning = false;
         this.pausedIndex = null;
         this.onRunningStateChange = onRunningStateChange;
+        this.stepTimeMs = stepTimeMs;
     }
 
     addCommandHandler(command: string, namespace: string, handler: CommandHandler) {
@@ -53,7 +56,7 @@ export default class Interpreter {
         });
     }
 
-    continueRun(resolve: any, reject: any): void {
+    continueRun(resolve: (result:any) => void, reject: (error: any) => void): void {
         if (this.isRunning) {
             if (this.atEnd()) {
                 this.isRunning = false;
@@ -64,7 +67,7 @@ export default class Interpreter {
                 this.onRunningStateChange({isRunning: this.isRunning, activeStep: this.programCounter, pausedStep: null});
                 this.step().then(() => {
                     this.continueRun(resolve, reject);
-                }, (error) => {
+                }, (error: Error) => {
                     // Reject the run Promise when the step Promise is rejected
                     this.isRunning = false;
                     this.onRunningStateChange({isRunning: this.isRunning, activeStep: null, pausedStep: null});
@@ -91,11 +94,15 @@ export default class Interpreter {
                     // the programCounter and resolve the step Promise
                     this.programCounter = this.programCounter + 1;
                     resolve();
-                }, (error) => {
+                }, (error: Error) => {
                     reject(error);
                 });
             }
         });
+    }
+
+    updatePausedIndex(index: number): void {
+        this.pausedIndex = index;
     }
 
     pause(index: ?number): void {
@@ -121,8 +128,9 @@ export default class Interpreter {
 
     callCommandHandlers(handlers: Array<CommandHandler>): Promise<any> {
         const promises = [];
+        const stepTimeMs = this.stepTimeMs;
         for (const handler of handlers) {
-            promises.push(handler(this));
+            promises.push(handler(this, stepTimeMs));
         }
         return Promise.all(promises);
     };
@@ -138,5 +146,9 @@ export default class Interpreter {
         } else {
             return [];
         }
+    }
+
+    setStepTime(stepTimeMs: number) {
+        this.stepTimeMs = stepTimeMs;
     }
 }
