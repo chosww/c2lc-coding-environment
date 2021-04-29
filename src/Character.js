@@ -13,11 +13,17 @@ type CharacterProps = {
 };
 
 export default class Character extends React.Component<CharacterProps, {}> {
+    characterRef: any;
+
+    constructor(props: CharacterProps) {
+        super(props);
+        this.characterRef = React.createRef();
+    }
+
     getThemedCharacter = () => {
         if (this.props.world === 'space') {
             return (
                 <SpaceShipIcon
-                    id="character-icon-space"
                     className='Character__icon'
                     x={-this.props.width/2}
                     y={-this.props.width/2}
@@ -27,7 +33,6 @@ export default class Character extends React.Component<CharacterProps, {}> {
         } else if (this.props.world === 'forest') {
             return (
                 <RabbitIcon
-                    id="character-icon-forest"
                     className='Character__icon'
                     x={-this.props.width/2}
                     y={-this.props.width/2}
@@ -37,7 +42,6 @@ export default class Character extends React.Component<CharacterProps, {}> {
         } else {
             return (
                 <RobotIcon
-                    id="character-icon-robot"
                     className='Character__icon'
                     x={-this.props.width/2}
                     y={-this.props.width/2}
@@ -47,17 +51,45 @@ export default class Character extends React.Component<CharacterProps, {}> {
         }
     }
 
-    getIconId = (): string => {
-        return "character-icon-" + this.props.world;
+    scrollScene() {
+        if (this.characterRef.current) {
+            const characterBounds = this.characterRef.current.getBoundingClientRect();
+            const sceneRef = document.getElementById('scene');
+            const sceneBounds = sceneRef.getBoundingClientRect();
+            if (characterBounds.left < sceneBounds.left) {
+                sceneRef.scrollLeft -= (sceneBounds.left - characterBounds.left + 50);
+            }
+            else if ((characterBounds.left + characterBounds.width) > (sceneBounds.left + sceneBounds.width)) {
+                sceneRef.scrollLeft += (characterBounds.left + characterBounds.width) - (sceneBounds.left + sceneBounds.width) + 50;
+            }
+
+            if (characterBounds.top < sceneBounds.top) {
+                sceneRef.scrollTop -= (sceneBounds.top - characterBounds.top + 50);
+            }
+            else if ((characterBounds.top + characterBounds.height) > (sceneBounds.top + sceneBounds.height)) {
+                sceneRef.scrollTop += (characterBounds.top + characterBounds.height) - (sceneBounds.top + sceneBounds.height) + 50;
+            }
+        }
     }
 
     render() {
         return (
             <g
+                ref={this.characterRef}
                 className='Character'
                 transform={this.props.transform}>
                 {this.getThemedCharacter()}
             </g>
         );
+    }
+
+    componentDidMount() {
+        this.scrollScene();
+    }
+
+    componentDidUpdate(prevProps: CharacterProps) {
+        if (prevProps.transform !== this.props.transform) {
+            this.scrollScene();
+        }
     }
 }
