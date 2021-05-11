@@ -50,6 +50,12 @@ export default class ProgramSerializer {
                 case ('right180') :
                     programText += 'd'
                     break;
+                case ('loopStart') :
+                    programText += 's';
+                    break;
+                case ('loopEnd') :
+                    programText += 'e';
+                    break;
                 default:
                     throw new Error(`Unrecognized program command when serializing program: ${program[i]}`);
             }
