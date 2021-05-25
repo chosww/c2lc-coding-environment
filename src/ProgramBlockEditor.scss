@@ -234,6 +234,7 @@ button.btn.ProgramBlockEditor__program-deleteAll-button--pressed.ProgramBlockEdi
 }
 
 .ProgramBlockEditor__program-sequence-scroll-container {
+    position: relative;
     border-radius: 0 3px 3px 0px;
     display: flex;
     grid-column-start: 2;

@@ -14,6 +14,7 @@ import CommandBlock from './CommandBlock';
 import classNames from 'classnames';
 import ProgramSequence from './ProgramSequence';
 import ToggleSwitch from './ToggleSwitch';
+import LoopCounter from './LoopCounter';
 import { ReactComponent as AddIcon } from './svg/Add.svg';
 import { ReactComponent as DeleteAllIcon } from './svg/DeleteAll.svg';
 import { ReactComponent as RobotIcon } from './svg/Robot.svg';
@@ -88,7 +89,8 @@ class ProgramBlockEditor extends React.Component<ProgramBlockEditorProps, Progra
             closestAddNodeIndex: -1,
             prevPropsCharacterState: this.props.characterState,
             characterColumnLabel: this.props.characterState.getColumnLabel(),
-            characterRowLabel: this.props.characterState.getRowLabel()
+            characterRowLabel: this.props.characterState.getRowLabel(),
+            loopEndIndex: null
         }
     }
 
@@ -135,9 +137,16 @@ class ProgramBlockEditor extends React.Component<ProgramBlockEditorProps, Progra
         if (this.props.selectedAction) {
             this.focusCommandBlockIndex = index;
             this.scrollToAddNodeIndex = index + 1;
-            this.props.onChangeProgramSequence(
-                this.props.programSequence.insertStep(index, this.props.selectedAction)
-            );
+            if (this.props.selectedAction === 'loopStart') {
+                this.props.onChangeProgramSequence(
+                    this.props.programSequence.appendLoopStack(index)
+                );
+                this.setState({loopEndIndex: index + 1});
+            } else {
+                this.props.onChangeProgramSequence(
+                    this.props.programSequence.insertStep(index, this.props.selectedAction)
+                );
+            }
         }
     }
 
@@ -216,7 +225,7 @@ class ProgramBlockEditor extends React.Component<ProgramBlockEditorProps, Progra
 
     handleConfirmDeleteAll = () => {
         this.props.onChangeProgramSequence(
-            this.props.programSequence.updateProgram([])
+            this.props.programSequence.updateProgramAndLoopStack([], new Map())
         );
         this.setState({
             showConfirmDeleteAll : false
@@ -271,7 +280,9 @@ class ProgramBlockEditor extends React.Component<ProgramBlockEditorProps, Progra
 
     handleActionPanelMoveToPreviousStep = (index: number) => {
         this.props.audioManager.playAnnouncement('moveToPrevious', this.props.intl);
-        if (this.props.programSequence.getProgramStepAt(index - 1) != null) {
+        if (this.props.programSequence.getProgramStepAt(index - 1) != null &&
+            !(this.props.programSequence.getProgramStepAt(index - 1) === 'loopStart' &&
+            this.props.programSequence.getProgramStepAt(index) === 'loopEnd')) {
             const previousStepIndex = index - 1;
             this.setState({
                 focusedActionPanelOptionName: 'moveToPreviousStep'
@@ -445,6 +456,18 @@ class ProgramBlockEditor extends React.Component<ProgramBlockEditorProps, Progra
                 this.props.onChangeCharacterYPosition(this.state.characterRowLabel);
             }
         }
+    }
+
+    handleUpdateLoopCounter = (e) => {
+        const enterKey = 'Enter';
+        if (e.key === enterKey) {
+            e.preventDefault();
+            this.props.onChangeLoopCounter(e.currentTarget.name, e.currentTarget.value);
+        }
+    }
+
+    handleBlurLoopCounterInputBox = (e) => {
+        this.props.onChangeLoopCounter(e.currentTarget.name, e.currentTarget.value);
     }
 
     // Rendering
@@ -646,6 +669,38 @@ class ProgramBlockEditor extends React.Component<ProgramBlockEditorProps, Progra
         }
     }
 
+    makeLoopCounter() {
+        const loopCounters = [];
+        const loopStack = this.props.programSequence.getLoopStack();
+        if (loopStack.size > 0) {
+            for (const loop of loopStack) {
+                const { startIndex, endIndex, iterationsLeft } = loop[1];
+                const startLoopBlock = this.commandBlockRefs.get(parseInt(startIndex, 10));
+                const endLoopBlock = this.commandBlockRefs.get(parseInt(endIndex, 10));
+                const programSequenceContainerBounds = this.programSequenceContainerRef.current.getBoundingClientRect();
+                if (startLoopBlock && endLoopBlock) {
+                    const startLoopBlockBounds = startLoopBlock.getBoundingClientRect();
+                    const endLoopBlockBounds = endLoopBlock.getBoundingClientRect();
+                    const containerScrollX = programSequenceContainerBounds.scrollX || 0;
+                    const absoluteLeft = startLoopBlockBounds.left + containerScrollX - programSequenceContainerBounds.left;
+                    loopCounters.push(
+                        <LoopCounter
+                            key={loop[0]}
+                            disabled={this.props.editingDisabled}
+                            iterationsLeft={iterationsLeft}
+                            loopId={loop[0]}
+                            startingPoint={absoluteLeft}
+                            width={endLoopBlockBounds.right - startLoopBlockBounds.left}
+                            onUpdateLoopCounter={this.handleUpdateLoopCounter}
+                            onBlurLoopCounterInputBox={this.handleBlurLoopCounterInputBox}
+                        />
+                    );
+                }
+            }
+        }
+        return loopCounters;
+    }
+
     render() {
         const contents = this.props.programSequence.getProgram().map((command, stepNumber) => {
             return this.makeProgramBlockSection(stepNumber, command);
@@ -800,6 +855,7 @@ class ProgramBlockEditor extends React.Component<ProgramBlockEditorProps, Progra
                         </div>
                         {contents}
                     </div>
+                    {this.makeLoopCounter()}
                 </div>
                 <ConfirmDeleteAllModal
                     show={this.state.showConfirmDeleteAll}
@@ -821,6 +877,14 @@ class ProgramBlockEditor extends React.Component<ProgramBlockEditorProps, Progra
                 (prevProps.runningState === 'running' && this.props.runningState === 'stopped')) {
                 this.updateCharacterPositionAriaLive();
             }
+        }
+        if (this.state.loopEndIndex != null) {
+            this.props.onChangeProgramSequence(
+                this.props.programSequence.insertStep(this.state.loopEndIndex, 'loopEnd')
+            );
+            this.setState({
+                loopEndIndex: null
+            });
         }
         if (this.scrollToAddNodeIndex != null) {
             const element = this.addNodeRefs.get(this.scrollToAddNodeIndex);

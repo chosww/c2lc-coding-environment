@@ -28,6 +28,7 @@ import ProgramSpeedController from './ProgramSpeedController';
 import ProgramSerializer from './ProgramSerializer';
 import ShareButton from './ShareButton';
 import ActionsMenu from './ActionsMenu';
+import LoopSerializer from './LoopSerializer';
 import type { ActionToggleRegister, AudioManager, CommandName, DeviceConnectionStatus, RobotDriver, RunningState, ThemeName, WorldName } from './types';
 import WorldSelector from './WorldSelector';
 import * as Utils from './Utils';
@@ -113,6 +114,8 @@ export class App extends React.Component<AppProps, AppState> {
         this.speedLookUp = [2000, 1500, 1000, 500, 250];
 
         this.programSerializer = new ProgramSerializer();
+
+        this.loopSerializer = new LoopSerializer();
 
         this.characterStateSerializer = new CharacterStateSerializer(this.sceneDimensions);
 
@@ -356,6 +359,22 @@ export class App extends React.Component<AppProps, AppState> {
             }
         );
 
+        this.interpreter.addCommandHandler(
+            'loopStart',
+            'loopCommands',
+            () => {
+                return new Promise((resolve) => {resolve()});
+            }
+        );
+
+        this.interpreter.addCommandHandler(
+            'loopEnd',
+            'loopCommands',
+            () => {
+                return new Promise((resolve) => {resolve()});
+            }
+        );
+
         // We have to calculate the allowed commands and initialise the state here because this is the point at which
         // the interpreter's commands are populated.
 
@@ -366,7 +385,7 @@ export class App extends React.Component<AppProps, AppState> {
         });
 
         this.state = {
-            programSequence: new ProgramSequence([], 0),
+            programSequence: new ProgramSequence([], 0, new Map()),
             characterState: this.startingCharacterState,
             settings: {
                 language: 'en',
@@ -713,6 +732,13 @@ export class App extends React.Component<AppProps, AppState> {
         });
     }
 
+    handleChangeLoopCounter = (loopId: string, value: number) => {
+        const currentProgramSequence = this.state.programSequence;
+        this.setState({
+            programSequence: currentProgramSequence.updateLoopCounter(loopId, value)
+        });
+    }
+
     render() {
         return (
             <React.Fragment>
@@ -776,6 +802,11 @@ export class App extends React.Component<AppProps, AppState> {
                                     'right45', 'right90', 'right180'
                                 ])}
                             </div>
+                            <div className='App__command-palette-commands'>
+                                {this.renderCommandBlocks([
+                                    'loopStart'
+                                ])}
+                            </div>
                         </div>
                     </div>
                     <div className='App__scene-container'>
@@ -830,6 +861,7 @@ export class App extends React.Component<AppProps, AppState> {
                             onChangeCharacterPosition={this.handleChangeCharacterPosition}
                             onChangeCharacterXPosition={this.handleChangeCharacterXPosition}
                             onChangeCharacterYPosition={this.handleChangeCharacterYPosition}
+                            onChangeLoopCounter={this.handleChangeLoopCounter}
                             onChangeProgramSequence={this.handleProgramSequenceChange}
                             onChangeActionPanelStepIndex={this.handleChangeActionPanelStepIndex}
                             onChangeAddNodeExpandedMode={this.handleChangeAddNodeExpandedMode}
@@ -886,10 +918,11 @@ export class App extends React.Component<AppProps, AppState> {
             const themeQuery = params.getTheme();
             const allowedActionsQuery = params.getAllowedActions();
             const worldQuery = params.getWorld();
+            const loopStack = params.getLoopStack();
 
             if (programQuery != null) {
                 try {
-                    const programSequence: ProgramSequence = new ProgramSequence(this.programSerializer.deserialize(programQuery), 0);
+                    const programSequence: ProgramSequence = new ProgramSequence(this.programSerializer.deserialize(programQuery), 0, this.loopSerializer.deserialize(loopStack));
                     const usedActions: ActionToggleRegister = this.calculateUsedActions(programSequence);
 
                     this.setState({
@@ -934,9 +967,10 @@ export class App extends React.Component<AppProps, AppState> {
             const localTheme = window.localStorage.getItem('c2lc-theme');
             const localAllowedActions = window.localStorage.getItem('c2lc-allowedActions');
             const localWorld = window.localStorage.getItem('c2lc-world');
+            const localLoopStack = window.localStorage.getItem('c2lc-loopStack');
             if (localProgram != null) {
                 try {
-                    const programSequence: ProgramSequence = new ProgramSequence(this.programSerializer.deserialize(localProgram), 0);
+                    const programSequence: ProgramSequence = new ProgramSequence(this.programSerializer.deserialize(localProgram), 0, this.loopSerializer.deserialize(localLoopStack));
                     const usedActions: ActionToggleRegister = this.calculateUsedActions(programSequence);
                     this.setState({
                         programSequence: programSequence,
@@ -987,6 +1021,7 @@ export class App extends React.Component<AppProps, AppState> {
             const serializedProgram = this.programSerializer.serialize(this.state.programSequence.getProgram());
             const serializedCharacterState = this.characterStateSerializer.serialize(this.state.characterState);
             const serializedAllowedActions = this.allowedActionsSerializer.serialize(this.state.allowedActions);
+            const serializedLoopStack = this.loopSerializer.serialize(this.state.programSequence.getLoopStack());
 
             // Use setTimeout() to limit how often we call history.pushState().
             // Safari will throw an error if calls to history.pushState() are
@@ -1001,10 +1036,11 @@ export class App extends React.Component<AppProps, AppState> {
                         c: serializedCharacterState,
                         t: this.state.settings.theme,
                         a: serializedAllowedActions,
-                        w: this.state.settings.world
+                        w: this.state.settings.world,
+                        l: serializedLoopStack
                     },
                     '',
-                    Utils.generateEncodedProgramURL(this.version, this.state.settings.theme, this.state.settings.world, serializedProgram, serializedCharacterState, serializedAllowedActions),
+                    Utils.generateEncodedProgramURL(this.version, this.state.settings.theme, this.state.settings.world, serializedProgram, serializedCharacterState, serializedAllowedActions, serializedLoopStack),
                     '',
                 );
             }, pushStateDelayMs);
@@ -1014,7 +1050,8 @@ export class App extends React.Component<AppProps, AppState> {
             window.localStorage.setItem('c2lc-characterState', serializedCharacterState);
             window.localStorage.setItem('c2lc-theme', this.state.settings.theme);
             window.localStorage.setItem('c2lc-allowedActions', serializedAllowedActions);
-            window.localStorage.setItem('c2lc-world', this.state.settings.world)
+            window.localStorage.setItem('c2lc-world', this.state.settings.world);
+            window.localStorage.setItem('c2lc-loopStack', serializedLoopStack);
         }
         if (this.state.announcementsEnabled !== prevState.announcementsEnabled) {
             this.audioManager.setAnnouncementsEnabled(this.state.announcementsEnabled);
