@@ -818,3 +818,15 @@ describe('When runningState is running, stopRequested, or pauseRequested, and pr
         expect(currentStep.get(0).props.className.includes('ProgramBlockEditor__program-block--active')).toBe(false);
     });
 });
+
+describe('When editingDisabled property changes to true', () => {
+    test('calls ChangeActionPanelStepIndex and sets focusedActionPanelOptionName state to null', () => {
+        expect.assertions(2);
+        const { wrapper, mockChangeActionPanelStepIndex } = createMountProgramBlockEditor({
+            actionPanelStepIndex: 0
+        });
+        wrapper.setProps({editingDisabled: true});
+        expect(mockChangeActionPanelStepIndex.mock.calls.length).toBe(1);
+        expect(mockChangeActionPanelStepIndex.mock.calls[0][0]).toBe(null);
+    });
+})
