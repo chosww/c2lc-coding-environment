@@ -619,7 +619,10 @@ class ProgramBlockEditor extends React.Component<ProgramBlockEditorProps, Progra
         );
     }
 
-    componentDidUpdate() {
+    componentDidUpdate(prevProps: ProgramBlockEditorProps) {
+        if (this.props.editingDisabled !== prevProps.editingDisabled && this.props.editingDisabled) {
+            this.closeActionPanel();
+        }
         if (this.scrollToAddNodeIndex != null) {
             const element = this.addNodeRefs.get(this.scrollToAddNodeIndex);
             if (element && element.scrollIntoView) {
