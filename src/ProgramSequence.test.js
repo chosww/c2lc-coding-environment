@@ -125,14 +125,14 @@ describe('Eiditing operations are not allowed when editingDisabled property is t
     test('overwriteStep', () => {
         expect.assertions(2);
         const programSequence = new ProgramSequence(['forward1'], 0, true);
-        const result = programSequence.overwriteStep(0);
+        const result = programSequence.overwriteStep(0, 'forward2');
         expect(result.getProgram()).toStrictEqual(['forward1']);
         expect(result.getProgramCounter()).toBe(0);
     });
     test('swapStep', () => {
         expect.assertions(2);
         const programSequence = new ProgramSequence(['forward1', 'forward2'], 0, true);
-        const result = programSequence.overwriteStep(0, 1);
+        const result = programSequence.swapStep(0, 1);
         expect(result.getProgram()).toStrictEqual(['forward1', 'forward2']);
         expect(result.getProgramCounter()).toBe(0);
     });
