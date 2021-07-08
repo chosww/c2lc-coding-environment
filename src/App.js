@@ -389,7 +389,7 @@ export class App extends React.Component<AppProps, AppState> {
         });
 
         this.state = {
-            programSequence: new ProgramSequence([], 0),
+            programSequence: new ProgramSequence([], 0, false),
             characterState: this.startingCharacterState,
             settings: {
                 language: 'en',
@@ -1170,7 +1170,7 @@ export class App extends React.Component<AppProps, AppState> {
 
             if (programQuery != null) {
                 try {
-                    const programSequence: ProgramSequence = new ProgramSequence(this.programSerializer.deserialize(programQuery), 0);
+                    const programSequence: ProgramSequence = new ProgramSequence(this.programSerializer.deserialize(programQuery), 0, false);
                     const usedActions: ActionToggleRegister = this.calculateUsedActions(programSequence);
 
                     this.setState({
@@ -1223,7 +1223,7 @@ export class App extends React.Component<AppProps, AppState> {
             const localWorld = window.localStorage.getItem('c2lc-world');
             if (localProgram != null) {
                 try {
-                    const programSequence: ProgramSequence = new ProgramSequence(this.programSerializer.deserialize(localProgram), 0);
+                    const programSequence: ProgramSequence = new ProgramSequence(this.programSerializer.deserialize(localProgram), 0, false);
                     const usedActions: ActionToggleRegister = this.calculateUsedActions(programSequence);
                     this.setState({
                         programSequence: programSequence,
@@ -1321,6 +1321,10 @@ export class App extends React.Component<AppProps, AppState> {
         if (this.state.runningState !== prevState.runningState
                 && this.state.runningState === 'running') {
             this.interpreter.startRun();
+        }
+        if (this.state.runningState !== prevState.runningState) {
+            const editingDisabled = !(this.state.runningState === 'stopped' || this.state.runningState === 'paused');
+            this.handleProgramSequenceChange(this.state.programSequence.updateEditingDisabled(editingDisabled));
         }
 
         if (this.state.selectedAction !== prevState.selectedAction) {

@@ -3,11 +3,11 @@
 import ProgramSequence from './ProgramSequence';
 import type { Program } from './types';
 
-test('ProgramSequence constructor should take program and programCounter parameters', () => {
+test('ProgramSequence constructor should take program,programCounter and editingDisabled parameters', () => {
     expect.assertions(2);
     const program = ['forward1'];
     const programCounter = 0;
-    const programSequence = new ProgramSequence(program, programCounter);
+    const programSequence = new ProgramSequence(program, programCounter, false);
     expect(programSequence.getProgram()).toBe(program);
     expect(programSequence.getProgramCounter()).toBe(programCounter);
 });
@@ -15,7 +15,7 @@ test('ProgramSequence constructor should take program and programCounter paramet
 test('updateProgramCounter should only update programCounter', () => {
     expect.assertions(2);
     const program = ['forward1'];
-    let programSequence = new ProgramSequence(program, 0);
+    let programSequence = new ProgramSequence(program, 0, false);
     const newProgramCounter = 1;
     programSequence = programSequence.updateProgramCounter(newProgramCounter);
     expect(programSequence.getProgram()).toBe(program);
@@ -24,7 +24,7 @@ test('updateProgramCounter should only update programCounter', () => {
 
 test('incrementProgramCounter should increment programCounter by 1', () => {
     expect.assertions(1);
-    let programSequence = new ProgramSequence([], 0);
+    let programSequence = new ProgramSequence([], 0, false);
     programSequence = programSequence.incrementProgramCounter();
     expect(programSequence.getProgramCounter()).toBe(1);
 });
@@ -44,7 +44,7 @@ test.each([
         expectedProgram: Program, expectedProgramCounter: number) => {
         expect.assertions(3);
         const programBefore = program.slice();
-        const programSequence = new ProgramSequence(program, programCounter);
+        const programSequence = new ProgramSequence(program, programCounter, false);
         const result = programSequence.deleteStep(index);
         expect(result.getProgram()).toStrictEqual(expectedProgram);
         expect(result.getProgramCounter()).toBe(expectedProgramCounter);
@@ -63,7 +63,7 @@ test.each([
         expectedProgram: Program, expectedProgramCounter: number) => {
         expect.assertions(3);
         const programBefore = program.slice();
-        const programSequence = new ProgramSequence(program, programCounter);
+        const programSequence = new ProgramSequence(program, programCounter, false);
         const result = programSequence.insertStep(index, 'left45');
         expect(result.getProgram()).toStrictEqual(expectedProgram);
         expect(result.getProgramCounter()).toBe(expectedProgramCounter);
@@ -81,7 +81,7 @@ test.each([
         expectedProgram: Program, expectedProgramCounter: number) => {
         expect.assertions(3);
         const programBefore = program.slice();
-        const programSequence = new ProgramSequence(program, programCounter);
+        const programSequence = new ProgramSequence(program, programCounter, false);
         const result = programSequence.overwriteStep(index, 'left45');
         expect(result.getProgram()).toStrictEqual(expectedProgram);
         expect(result.getProgramCounter()).toBe(expectedProgramCounter);
@@ -99,7 +99,7 @@ test.each([
         expectedProgram: Program, expectedProgramCounter: number) => {
         expect.assertions(3);
         const programBefore = program.slice();
-        const programSequence = new ProgramSequence(program, programCounter);
+        const programSequence = new ProgramSequence(program, programCounter, false);
         const result = programSequence.swapStep(indexFrom, indexTo);
         expect(result.getProgram()).toStrictEqual(expectedProgram);
         expect(result.getProgramCounter()).toBe(expectedProgramCounter);

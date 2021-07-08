@@ -23,7 +23,7 @@ function createMountActionPanel(props) {
                 {
                     focusedOptionName: null,
                     selectedCommandName: 'right45',
-                    programSequence: new ProgramSequence(['forward1', 'left45', 'right45'], 0),
+                    programSequence: new ProgramSequence(['forward1', 'left45', 'right45'], 0, false),
                     pressedStepIndex: 1,
                     position: {
                         top: 0,

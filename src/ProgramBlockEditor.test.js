@@ -38,7 +38,7 @@ const mockAllowedActions = {
 const defaultProgramBlockEditorProps = {
     interpreterIsRunning: false,
     characterState: new CharacterState(1, 1, 2, [], new SceneDimensions(1, 100, 1, 100)),
-    programSequence: new ProgramSequence(['forward1', 'left45', 'forward1', 'left45'], 0),
+    programSequence: new ProgramSequence(['forward1', 'left45', 'forward1', 'left45'], 0, false),
     runningState: 'stopped',
     actionPanelStepIndex: null,
     selectedAction: null,
@@ -258,7 +258,7 @@ describe("Add nodes", () => {
         expect.assertions(3);
 
         const { wrapper } = createMountProgramBlockEditor({
-            programSequence: new ProgramSequence(['forward1', 'right45'], 0),
+            programSequence: new ProgramSequence(['forward1', 'right45'], 0, false),
             addNodeExpandedMode: true
         });
 
@@ -276,7 +276,7 @@ describe("Add nodes", () => {
         expect.assertions(3);
 
         const { wrapper } = createMountProgramBlockEditor({
-            programSequence: new ProgramSequence(['forward1', 'right45'], 0),
+            programSequence: new ProgramSequence(['forward1', 'right45'], 0, false),
             selectedAction: 'left45',
             addNodeExpandedMode: true
         });
@@ -302,7 +302,7 @@ describe("Add nodes", () => {
         expect.assertions(1);
 
         const { wrapper } = createMountProgramBlockEditor({
-            programSequence: new ProgramSequence([], 0),
+            programSequence: new ProgramSequence([], 0, false),
             selectedAction: 'left45'
         });
 
@@ -318,7 +318,7 @@ describe("Add nodes", () => {
         expect.assertions(1);
 
         const { wrapper } = createMountProgramBlockEditor({
-            programSequence: new ProgramSequence([], 0)
+            programSequence: new ProgramSequence([], 0, false)
         });
 
         const soleAddButton  = getAddNodeButtonAtPosition(wrapper, 0);
@@ -354,7 +354,7 @@ describe("Add program steps", () => {
 
         // Given a program of 5 forwards and 'left45' as the selected command
         const { wrapper, audioManagerMock, mockChangeProgramSequenceHandler } = createMountProgramBlockEditor({
-            programSequence: new ProgramSequence(['forward1', 'forward1', 'forward1', 'forward1', 'forward1'], 0),
+            programSequence: new ProgramSequence(['forward1', 'forward1', 'forward1', 'forward1', 'forward1'], 0, false),
             selectedAction: 'left45'
         });
 
@@ -370,7 +370,7 @@ describe("Add program steps", () => {
         // And the program should be changed
         expect(mockChangeProgramSequenceHandler.mock.calls.length).toBe(1);
         expect(mockChangeProgramSequenceHandler.mock.calls[0][0]).toStrictEqual(
-            new ProgramSequence(['forward1', 'forward1', 'forward1', 'forward1', 'forward1', 'left45'], 0)
+            new ProgramSequence(['forward1', 'forward1', 'forward1', 'forward1', 'forward1', 'left45'], 0, false)
         );
     });
 
@@ -379,7 +379,7 @@ describe("Add program steps", () => {
 
         // Given a program of 5 forwards and 'left45' as the selected command
         const { wrapper, audioManagerMock, mockChangeProgramSequenceHandler } = createMountProgramBlockEditor({
-            programSequence: new ProgramSequence(['forward1', 'forward1', 'forward1', 'forward1', 'forward1'], 0),
+            programSequence: new ProgramSequence(['forward1', 'forward1', 'forward1', 'forward1', 'forward1'], 0, false),
             selectedAction: 'left45',
             addNodeExpandedMode: true
         });
@@ -396,7 +396,7 @@ describe("Add program steps", () => {
         // And the program should be changed
         expect(mockChangeProgramSequenceHandler.mock.calls.length).toBe(1);
         expect(mockChangeProgramSequenceHandler.mock.calls[0][0]).toStrictEqual(
-            new ProgramSequence(['left45', 'forward1', 'forward1', 'forward1', 'forward1', 'forward1'], 1)
+            new ProgramSequence(['left45', 'forward1', 'forward1', 'forward1', 'forward1', 'forward1'], 1, false)
         );
     });
 
@@ -405,7 +405,7 @@ describe("Add program steps", () => {
 
         // Given a program of 5 forwards and 'left45' as the selected command
         const { wrapper, audioManagerMock, mockChangeProgramSequenceHandler } = createMountProgramBlockEditor({
-            programSequence: new ProgramSequence(['forward1', 'forward1', 'forward1', 'forward1', 'forward1'], 0),
+            programSequence: new ProgramSequence(['forward1', 'forward1', 'forward1', 'forward1', 'forward1'], 0, false),
             selectedAction: 'left45',
             addNodeExpandedMode: true
         });
@@ -421,7 +421,7 @@ describe("Add program steps", () => {
         // And the program should be changed
         expect(mockChangeProgramSequenceHandler.mock.calls.length).toBe(1);
         expect(mockChangeProgramSequenceHandler.mock.calls[0][0]).toStrictEqual(
-            new ProgramSequence(['forward1', 'forward1', 'forward1', "left45", 'forward1', 'forward1'], 0)
+            new ProgramSequence(['forward1', 'forward1', 'forward1', "left45", 'forward1', 'forward1'], 0, false)
         );
     });
 });
@@ -615,7 +615,7 @@ describe('Autoscroll to show a step after the active program step', () => {
         getProgramSequenceContainer(wrapper).ref.current.scrollTo = mockScrollTo;
 
         wrapper.setProps({
-            programSequence: new ProgramSequence(['forward1', 'left45', 'forward1', 'left45'], 0)
+            programSequence: new ProgramSequence(['forward1', 'left45', 'forward1', 'left45'], 0, true)
         });
 
         expect(mockScrollTo.mock.calls.length).toBe(1);
@@ -654,7 +654,7 @@ describe('Autoscroll to show a step after the active program step', () => {
         // Trigger a scroll
         wrapper.setProps({
             runningState: 'running',
-            programSequence: new ProgramSequence(['forward1', 'left45', 'forward1', 'left45'], 2)
+            programSequence: new ProgramSequence(['forward1', 'left45', 'forward1', 'left45'], 2, true)
         });
 
         expect(programSequenceContainer.ref.current.scrollLeft).toBe(200 + 2300 - 100 - 1000);
@@ -690,7 +690,7 @@ describe('Autoscroll to show a step after the active program step', () => {
         // Trigger a scroll
         wrapper.setProps({
             runningState: 'running',
-            programSequence: new ProgramSequence(['forward1', 'left45', 'forward1', 'left45'], 2)
+            programSequence: new ProgramSequence(['forward1', 'left45', 'forward1', 'left45'], 2, true)
         });
 
         expect(programSequenceContainer.ref.current.scrollLeft).toBe(2000 - 100 - 200);
@@ -726,7 +726,7 @@ describe('Autoscroll to show a step after the active program step', () => {
         // Trigger a scroll
         wrapper.setProps({
             runningState: 'running',
-            programSequence: new ProgramSequence(['forward1', 'left45', 'forward1', 'left45'], 3)
+            programSequence: new ProgramSequence(['forward1', 'left45', 'forward1', 'left45'], 3, true)
         });
 
         expect(programSequenceContainer.ref.current.scrollLeft).toBe(2000 - 100 - 200);
@@ -742,7 +742,7 @@ test('The editor scrolls when a step is added to the end of the program', () => 
 
     // Given a program of 5 forwards and 'left45' as the selected command
     const { wrapper, audioManagerMock, mockChangeProgramSequenceHandler } = createMountProgramBlockEditor({
-        programSequence: new ProgramSequence(['forward1', 'forward1', 'forward1', 'forward1', 'forward1'], 0),
+        programSequence: new ProgramSequence(['forward1', 'forward1', 'forward1', 'forward1', 'forward1'], 0, false),
         selectedAction: 'left45'
     });
 
@@ -758,7 +758,7 @@ test('The editor scrolls when a step is added to the end of the program', () => 
     // And the program should be changed
     expect(mockChangeProgramSequenceHandler.mock.calls.length).toBe(1);
     expect(mockChangeProgramSequenceHandler.mock.calls[0][0]).toStrictEqual(
-        new ProgramSequence(['forward1', 'forward1', 'forward1', 'forward1', 'forward1', 'left45'], 0)
+        new ProgramSequence(['forward1', 'forward1', 'forward1', 'forward1', 'forward1', 'left45'], 0, false)
     );
 
     // And updating the program triggers auto scroll
