@@ -109,31 +109,55 @@ test.each([
 
 describe('Eiditing operations are not allowed when editingDisabled property is true', () => {
     test('deleteStep', () => {
-        expect.assertions(2);
+        expect.assertions(5);
         const programSequence = new ProgramSequence(['forward1'], 0, true);
+        expect(programSequence.editingDisabled).toBe(true);
         const result = programSequence.deleteStep(0);
         expect(result.getProgram()).toStrictEqual(['forward1']);
         expect(result.getProgramCounter()).toBe(0);
+
+        const editableSequence = programSequence.updateEditingDisabled(false);
+        expect(editableSequence.editingDisabled).toBe(false);
+        const updatedResult = editableSequence.deleteStep(0);
+        expect(updatedResult.getProgram()).toStrictEqual([]);
     });
     test('insertStep', () => {
-        expect.assertions(2);
+        expect.assertions(5);
         const programSequence = new ProgramSequence(['forward1'], 0, true);
+        expect(programSequence.editingDisabled).toBe(true);
         const result = programSequence.insertStep(0, 'forward2');
         expect(result.getProgram()).toStrictEqual(['forward1']);
         expect(result.getProgramCounter()).toBe(0);
+
+        const editableSequence = programSequence.updateEditingDisabled(false);
+        expect(editableSequence.editingDisabled).toBe(false);
+        const updatedResult = editableSequence.insertStep(0, 'forward2');
+        expect(updatedResult.getProgram()).toStrictEqual(['forward2', 'forward1']);
     });
     test('overwriteStep', () => {
-        expect.assertions(2);
+        expect.assertions(5);
         const programSequence = new ProgramSequence(['forward1'], 0, true);
+        expect(programSequence.editingDisabled).toBe(true);
         const result = programSequence.overwriteStep(0, 'forward2');
         expect(result.getProgram()).toStrictEqual(['forward1']);
         expect(result.getProgramCounter()).toBe(0);
+
+        const editableSequence = programSequence.updateEditingDisabled(false);
+        expect(editableSequence.editingDisabled).toBe(false);
+        const updatedResult = editableSequence.overwriteStep(0, 'forward2');
+        expect(updatedResult.getProgram()).toStrictEqual(['forward2']);
     });
     test('swapStep', () => {
-        expect.assertions(2);
+        expect.assertions(5);
         const programSequence = new ProgramSequence(['forward1', 'forward2'], 0, true);
+        expect(programSequence.editingDisabled).toBe(true);
         const result = programSequence.swapStep(0, 1);
         expect(result.getProgram()).toStrictEqual(['forward1', 'forward2']);
         expect(result.getProgramCounter()).toBe(0);
+
+        const editableSequence = programSequence.updateEditingDisabled(false);
+        expect(editableSequence.editingDisabled).toBe(false);
+        const updatedResult = editableSequence.swapStep(0, 1);
+        expect(updatedResult.getProgram()).toStrictEqual(['forward2', 'forward1']);
     });
 });
