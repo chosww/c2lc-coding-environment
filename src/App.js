@@ -435,6 +435,24 @@ export class App extends React.Component<AppProps, AppState> {
         this.programBlockEditorRef = React.createRef();
     }
 
+    makeFeedbackAnnouncement(element: EventTarget) {
+        if (!this.audioManager.getFeedbackIsPlaying()) {
+            // $FlowFixMe getAttribute is missing in event target
+            const ariaLabel = element.getAttribute('aria-label');
+            if (ariaLabel) {
+                this.audioManager.playPreviewAnnouncement(ariaLabel);
+            } else {
+                // $FlowFixMe innerText is missing in event target
+                const innerText = element.innerText;
+                if (innerText) {
+                    this.audioManager.playPreviewAnnouncement(innerText);
+                }
+            }
+        } else {
+            this.audioManager.setFeedbackIsPlaying(false);
+        }
+    }
+
     setStateSettings(settings: $Shape<AppSettings>) {
         this.setState((state) => {
             return {
@@ -852,21 +870,7 @@ export class App extends React.Component<AppProps, AppState> {
     }
 
     handleRootFocus = (e: SyntheticKeyboardEvent<HTMLElement>) => {
-        // $FlowFixMe getAttribute is missing in event target
-        const ariaLabel = e.target.getAttribute('aria-label');
-        if (!this.audioManager.getFeedbackIsPlaying()) {
-            if (ariaLabel) {
-                this.audioManager.playPreviewAnnouncement(ariaLabel);
-            } else {
-                // $FlowFixMe innerText is missing in event target
-                const innerText = e.target.innerText;
-                if (innerText) {
-                    this.audioManager.playPreviewAnnouncement(innerText);
-                }
-            }
-        } else {
-            this.audioManager.setFeedbackIsPlaying(false);
-        }
+        this.makeFeedbackAnnouncement(e.target);
     }
 
     handleRootHover = (e: SyntheticMouseEvent<HTMLElement>) => {
@@ -878,21 +882,7 @@ export class App extends React.Component<AppProps, AppState> {
         }
         // $FlowFixMe contains is missing in event target
         if (element && !element.contains(e.relatedTarget)) {
-            if (!this.audioManager.getFeedbackIsPlaying()) {
-                // $FlowFixMe getAttribute is missing in event target
-                const ariaLabel = element.getAttribute('aria-label');
-                if (ariaLabel) {
-                    this.audioManager.playPreviewAnnouncement(ariaLabel);
-                } else {
-                    // $FlowFixMe innerText is missing in event target
-                    const innerText = e.target.innerText;
-                    if (innerText) {
-                        this.audioManager.playPreviewAnnouncement(innerText);
-                    }
-                }
-            } else {
-                this.audioManager.setFeedbackIsPlaying(false);
-            }
+            this.makeFeedbackAnnouncement(element);
         }
     }
 
