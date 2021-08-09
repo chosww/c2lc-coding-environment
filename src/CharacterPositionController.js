@@ -117,11 +117,13 @@ class CharacterPositionController extends React.Component<CharacterPositionContr
 
     render() {
         const characterPositionButtonClassName = classNames(
+            'preview-announce-it',
             'CharacterPositionController__character-position-button',
             this.props.editingDisabled && 'CharacterPositionController__character-position-button--disabled'
         );
 
         const characterPositionColumnTextInputClassName = classNames(
+            'preview-announce-it',
             'ProgramBlock__character-position-coordinate-box',
             'ProgramBlock__character-position-coordinate-box-column',
             this.props.editingDisabled && 'ProgramBlock__character-position-coordinate-box--disabled'
@@ -129,6 +131,7 @@ class CharacterPositionController extends React.Component<CharacterPositionContr
 
 
         const characterPositionRowTextInputClassName = classNames(
+            'preview-announce-it',
             'ProgramBlock__character-position-coordinate-box',
             'ProgramBlock__character-position-coordinate-box-row',
             this.props.editingDisabled && 'ProgramBlock__character-position-coordinate-box--disabled'

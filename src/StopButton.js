@@ -18,6 +18,7 @@ type StopButtonProps = {
 class StopButton extends React.Component<StopButtonProps, {}> {
     render() {
         const classes = classNames(
+            'preview-announce-it',
             this.props.className,
             'StopButton'
         );

@@ -20,6 +20,7 @@ type PlayButtonProps = {
 class PlayButton extends React.Component<PlayButtonProps, {}> {
     render() {
         const classes = classNames(
+            'preview-announce-it',
             this.props.className,
             'PlayButton',
             this.props.interpreterIsRunning && 'PlayButton--pause',

@@ -34,7 +34,7 @@ const AddNode = React.forwardRef<AddNodeProps, HTMLDivElement>(
             return (
                 <div className={addNodeClasses}>
                     <AriaDisablingButton
-                        className={"AddNode__expanded-button" + (isNearestDragNode ? " AddNode__expanded-button--isDragTarget" : "")}
+                        className={"AddNode__expanded-button preview-announce-it" + (isNearestDragNode ? " AddNode__expanded-button--isDragTarget" : "")}
                         data-stepnumber={props.programStepNumber}
                         data-controltype='addNode'
                         // $FlowFixMe: Use something less generic here.

@@ -869,6 +869,33 @@ export class App extends React.Component<AppProps, AppState> {
         }
     }
 
+    handleRootHover = (e: SyntheticMouseEvent<HTMLElement>) => {
+        let element = e.target;
+        // $FlowFixMe classList is missing in event target
+        while (element != null && !element.classList.contains('preview-announce-it')) {
+            // $FlowFixMe parentElement is missing in event target
+            element = element.parentElement;
+        }
+        // $FlowFixMe contains is missing in event target
+        if (element && !element.contains(e.relatedTarget)) {
+            if (!this.audioManager.getFeedbackIsPlaying()) {
+                // $FlowFixMe getAttribute is missing in event target
+                const ariaLabel = element.getAttribute('aria-label');
+                if (ariaLabel) {
+                    this.audioManager.playPreviewAnnouncement(ariaLabel);
+                } else {
+                    // $FlowFixMe innerText is missing in event target
+                    const innerText = e.target.innerText;
+                    if (innerText) {
+                        this.audioManager.playPreviewAnnouncement(innerText);
+                    }
+                }
+            } else {
+                this.audioManager.setFeedbackIsPlaying(false);
+            }
+        }
+    }
+
     handleToggleAudioFeedback = (announcementsEnabled: boolean) => {
         this.setState({
             announcementsEnabled: announcementsEnabled
@@ -1032,10 +1059,11 @@ export class App extends React.Component<AppProps, AppState> {
                     role='main'
                     onClick={this.handleRootClick}
                     onKeyDown={this.handleRootKeyDown}
-                    onFocus={this.handleRootFocus}>
+                    onFocus={this.handleRootFocus}
+                    onMouseOver={this.handleRootHover}>
                     <header className='App__header'>
                         <div className='App__header-row'>
-                            <h1 className='App__app-heading'>
+                            <h1 className='App__app-heading preview-announce-it'>
                                 <a href='https://weavly.org'
                                     aria-label={this.props.intl.formatMessage({id: 'App.appHeading.link'})}
                                     target='_blank'
@@ -1044,7 +1072,7 @@ export class App extends React.Component<AppProps, AppState> {
                                 </a>
                             </h1>
                             <div
-                                className={"App__header-keyboardMenuIcon" + (this.state.keyBindingsEnabled ? "" : " App__header-keyboardMenuIcon--disabled")}
+                                className={"App__header-keyboardMenuIcon preview-announce-it" + (this.state.keyBindingsEnabled ? "" : " App__header-keyboardMenuIcon--disabled")}
                                 tabIndex={0}
                                 aria-label={this.props.intl.formatMessage({ id: 'KeyboardInputModal.ShowHide.AriaLabel' })}
                                 onClick={this.handleKeyboardModalToggle}

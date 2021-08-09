@@ -609,12 +609,12 @@ class ProgramBlockEditor extends React.Component<ProgramBlockEditorProps, Progra
                             onChange={this.props.onChangeAddNodeExpandedMode}
                             contentsTrue={<AddIcon />}
                             contentsFalse={<AddIcon />}
-                            className='ProgramBlockEditor__add-node-toggle-switch'
+                            className='ProgramBlockEditor__add-node-toggle-switch preview-announce-it'
                         />
                         <span className='ProgramBlockEditor__program-deleteAll'>
                             <AriaDisablingButton
                                 aria-label={this.props.intl.formatMessage({id:'ProgramBlockEditor.program.deleteAll'})}
-                                className='ProgramBlockEditor__program-deleteAll-button'
+                                className='ProgramBlockEditor__program-deleteAll-button preview-announce-it'
                                 disabledClassName='ProgramBlockEditor__program-deleteAll-button--disabled'
                                 disabled={this.props.editingDisabled}
                                 onClick={this.handleClickDeleteAll}

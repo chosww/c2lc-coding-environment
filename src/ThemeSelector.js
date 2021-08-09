@@ -15,26 +15,26 @@ type ThemeSelectorProps = {
 class ThemeSelector extends React.Component<ThemeSelectorProps, {}> {
     render() {
         return (
-            <DropdownButton className='ThemeSelector' onSelect={this.props.onSelect} title={`${this.props.intl.formatMessage({id:'ThemeSelector.theme'})}`}>
+            <DropdownButton className='ThemeSelector preview-announce-it' onSelect={this.props.onSelect} title={`${this.props.intl.formatMessage({id:'ThemeSelector.theme'})}`}>
                 {
                     /* $FlowFixMe
                         Cannot get Dropdown.Item because property Item is missing in statics of Dropdown
                     */
-                    <Dropdown.Item eventKey='mixed'>{this.props.intl.formatMessage({id:'ThemeSelector.theme.mixed'})}</Dropdown.Item>
+                    <Dropdown.Item className='preview-announce-it' eventKey='mixed'>{this.props.intl.formatMessage({id:'ThemeSelector.theme.mixed'})}</Dropdown.Item>
                 }
                 {
                     // $FlowFixMe
-                    <Dropdown.Item eventKey='light'>{this.props.intl.formatMessage({id:'ThemeSelector.theme.light'})}</Dropdown.Item>
+                    <Dropdown.Item className='preview-announce-it' eventKey='light'>{this.props.intl.formatMessage({id:'ThemeSelector.theme.light'})}</Dropdown.Item>
                 }
 
                 { // $FlowFixMe
-                    <Dropdown.Item eventKey='dark'>{this.props.intl.formatMessage({id:'ThemeSelector.theme.dark'})}</Dropdown.Item>
+                    <Dropdown.Item className='preview-announce-it' eventKey='dark'>{this.props.intl.formatMessage({id:'ThemeSelector.theme.dark'})}</Dropdown.Item>
                 }
                 { // $FlowFixMe
-                    <Dropdown.Item eventKey='gray'>{this.props.intl.formatMessage({id:'ThemeSelector.theme.gray'})}</Dropdown.Item>
+                    <Dropdown.Item className='preview-announce-it' eventKey='gray'>{this.props.intl.formatMessage({id:'ThemeSelector.theme.gray'})}</Dropdown.Item>
                 }
                 { // $FlowFixMe
-                    <Dropdown.Item eventKey='contrast'>{this.props.intl.formatMessage({id:'ThemeSelector.theme.contrast'})}</Dropdown.Item>
+                    <Dropdown.Item className='preview-announce-it' eventKey='contrast'>{this.props.intl.formatMessage({id:'ThemeSelector.theme.contrast'})}</Dropdown.Item>
                 }
             </DropdownButton>
         );

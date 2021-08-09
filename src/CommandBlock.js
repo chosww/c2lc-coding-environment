@@ -63,6 +63,7 @@ export default React.forwardRef<CommandBlockProps, Button>(
         }
 
         const classes = classNames(
+            'preview-announce-it',
             'command-block',
             className
         );
