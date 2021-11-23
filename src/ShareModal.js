@@ -1,5 +1,6 @@
 // @flow
 import React from 'react';
+import ModalBody from './ModalBody';
 import ModalHeader from './ModalHeader';
 import ModalWithFooter from './ModalWithFooter';
 import { injectIntl, FormattedMessage } from 'react-intl';
@@ -65,25 +66,24 @@ class ShareCompleteModal extends React.Component<ShareCompleteModalProps, {}> {
                 >
                     <ShareIcon aria-hidden="true"/>
                 </ModalHeader>
+                <ModalBody>
+                    <div className='ShareModal__content'>
+                        <p><FormattedMessage id='ShareModal.description1' /></p>
+                        <p><FormattedMessage id='ShareModal.description2' /></p>
 
-                <div className='ShareModal__content'>
-                    <p><FormattedMessage id='ShareModal.description1' /></p>
-                    <p><FormattedMessage id='ShareModal.description2' /></p>
-
-                    <div className='ShareModal__form'>
-                        <div className='ShareModal__form__URL__container'>
-                            <div className='ShareModal__form__URL'>{document.location.href}</div>
+                        <div className='ShareModal__form'>
+                            <input className='ShareModal__form__URL' type="text" readOnly={true} value={document.location.href} />
+                            <button
+                                className='ShareModal__form__copyButton'
+                                onClick={this.copyURL}
+                                onKeyDown={this.handleKeyDown}
+                            >
+                                <FormattedMessage id='ShareModal.copy'/>
+                            </button>
                         </div>
-                        <button
-                            className='ShareModal__form__copyButton'
-                            onClick={this.copyURL}
-                            onKeyDown={this.handleKeyDown}
-                        >
-                            <FormattedMessage id='ShareModal.copy'/>
-                        </button>
-                    </div>
 
-                </div>
+                    </div>
+                </ModalBody>
             </ModalWithFooter>);
     }
 }
