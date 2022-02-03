@@ -50,15 +50,14 @@
 }
 
 .ActionsMenuItem__icon--loop {
-    box-shadow: none;
-    height: 2.5rem;
-    width: 3.3rem;
-    min-width: 60px;
+    height: auto;
+    min-height: auto;
+    box-shadow: 0 3px 4px 0 #1e1e1e, -1px 2px 4px;
     
     svg {
-        margin: 0rem;
-        height: 2.5rem;
-        width: 3.3rem;
+        margin: 0;
+        height: 100%;
+        width: 100%;
     }
 }
 
