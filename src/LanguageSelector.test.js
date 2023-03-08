@@ -4,7 +4,6 @@ import React from 'react';
 import Adapter from 'enzyme-adapter-react-16';
 import { shallow, configure, ReactWrapper } from 'enzyme';
 import LanguageSelector from './LanguageSelector';
-import type { AvailableLanguages } from './types';
 import * as TestUtils from './TestUtils';
 
 configure({ adapter: new Adapter()});
