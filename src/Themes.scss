@@ -569,6 +569,12 @@ body.dark-theme {
         border-color: #ffffff;
     }
 
+    .LanguageSelector__container {
+        border-color: #30444E;
+        background-color: #18252C;
+        color: #FFFFFF;
+    }
+
     .App__command-palette {
         background-color: #33717F;
         border: 2px solid #33717F;
@@ -1761,6 +1767,12 @@ body.contrast-theme {
 
     .App__PrivacyModal__toggle-button:focus {
         border-color: #ffffff;
+    }
+
+    .LanguageSelector__container {
+        border-color: #FFFFFF;
+        background-color: #000000;
+        color: #FFFFFF;
     }
 
     .CookieNotification {
