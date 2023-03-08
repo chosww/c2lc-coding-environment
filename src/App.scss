@@ -44,6 +44,13 @@ body {
     flex-direction: column;
 }
 
+.App__privacy-and-language {
+    display: flex;
+    width: 7.2rem;
+    gap: 0.5rem;
+    margin-bottom: 0.5rem;
+}
+
 .App__header-menu {
     background-color: #CCE6E2;
     border-radius: 3px;
@@ -95,8 +102,7 @@ body {
 }
 
 .App__PrivacyButtonContainer {
-    margin-left: 0.5rem;
-    margin-bottom: 0.25rem;
+    width: 3rem;
 }
 
 .App__PrivacyModal__toggle-button {

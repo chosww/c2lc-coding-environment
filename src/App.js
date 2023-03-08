@@ -20,6 +20,7 @@ import FakeAudioManager from './FakeAudioManager';
 import FocusTrapManager from './FocusTrapManager';
 import IconButton from './IconButton';
 import Interpreter from './Interpreter';
+import LanguageSelector from './LanguageSelector';
 import PlayButton from './PlayButton';
 import ProgramBlockEditor from './ProgramBlockEditor';
 import RefreshButton from './RefreshButton';
@@ -32,7 +33,7 @@ import ProgramSequence from './ProgramSequence';
 import ProgramSpeedController from './ProgramSpeedController';
 import ProgramSerializer from './ProgramSerializer';
 import ActionsSimplificationModal from './ActionsSimplificationModal';
-import type { ActionToggleRegister, AudioManager, DeviceConnectionStatus, DisplayedCommandName, RobotDriver, RunningState, ThemeName } from './types';
+import type { ActionToggleRegister, AudioManager, AvailableLanguages, DeviceConnectionStatus, DisplayedCommandName, RobotDriver, RunningState, ThemeName } from './types';
 import type { WorldName } from './Worlds';
 import { getWorldProperties } from './Worlds';
 import WorldSelector from './WorldSelector';
@@ -82,15 +83,16 @@ type AppContext = {
 };
 
 type AppSettings = {
-    language: string,
     addNodeExpandedMode: boolean,
     theme: ThemeName,
     world: WorldName
 };
 
 type AppProps = {
+    currentLanguage: AvailableLanguages,
     intl: IntlShape,
-    audioManager?: AudioManager
+    audioManager?: AudioManager,
+    onSelectLanguage: (selectedLanguage: AvailableLanguages) => void,
 };
 
 export type AppState = {
@@ -421,7 +423,6 @@ export class App extends React.Component<AppProps, AppState> {
             programSequence: new ProgramSequence([], 0, 0, new Map()),
             characterState: this.makeStartingCharacterState(startingX, startingY, startingDirection),
             settings: {
-                language: 'en',
                 addNodeExpandedMode: true,
                 theme: 'default',
                 world: this.defaultWorld
@@ -1411,14 +1412,20 @@ export class App extends React.Component<AppProps, AppState> {
                                     <Logo alt={this.props.intl.formatMessage({id: 'App.appHeading.link'})}/>
                                 </a>
                             </h1>
-                            <div className='App__PrivacyButtonContainer'>
-                                <button
-                                    aria-label={this.props.intl.formatMessage({id: 'App.privacyModalToggle.ariaLabel'})}
-                                    className="App__PrivacyModal__toggle-button"
-                                    onClick={this.handleClickPrivacyButton}
-                                >
-                                    <FormattedMessage id='App.privacyModalToggle'/>
-                                </button>
+                            <div className="App__privacy-and-language">
+                                <div className='App__PrivacyButtonContainer'>
+                                    <button
+                                        aria-label={this.props.intl.formatMessage({id: 'App.privacyModalToggle.ariaLabel'})}
+                                        className="App__PrivacyModal__toggle-button"
+                                        onClick={this.handleClickPrivacyButton}
+                                    >
+                                        <FormattedMessage id='App.privacyModalToggle'/>
+                                    </button>
+                                </div>
+                                <LanguageSelector
+                                    currentLanguage={this.props.currentLanguage}
+                                    ariaLabel={this.props.intl.formatMessage({ id: 'LanguageSelector.title' })}
+                                    onSelect={this.props.onSelectLanguage} />
                             </div>
                             <div className='App__header-menu'>
                                 <IconButton

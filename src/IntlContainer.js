@@ -15,8 +15,12 @@ export default class IntlContainer extends React.Component<{}, IntlContainerStat
         super(props);
 
         this.state = {
-            language: 'fr'
+            language: 'en'
         };
+    }
+
+    handleSelectLanguage = (language: AvailableLanguages) => {
+        this.setState({language});
     }
 
     render() {
@@ -25,7 +29,7 @@ export default class IntlContainer extends React.Component<{}, IntlContainerStat
                 locale={this.state.language}
                 defaultLocale='en'
                 messages={messages[this.state.language]}>
-                <App/>
+                <App currentLanguage={this.state.language} onSelectLanguage={this.handleSelectLanguage}/>
             </IntlProvider>
         );
     }
